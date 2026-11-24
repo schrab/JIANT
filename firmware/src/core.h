@@ -137,7 +137,7 @@ enum {                          /* per-track parameters */
 #define P_WRDEP P_FM4_SUS              /* .. the rotor's depth (the Leslie's swirl), 100 % as before */
 #define P_ELOOP P_ED_FX                /* (JIANT 0.4) ENV LOOP: OFF / ON (voice.c env_tick) */
 /* (JIANT 0.8.5) VOICE's words (sing.c), EDIT > WORDS, in slots of other engines' (0 there in every project and preset
- * before, on a VOICE track: OFF, TEXT): LANG OFF ES EN JA in LOFI's RTRG slot, LYRIC (TEXT, W1..W16, S1..S8) in DRUM's
+ * before, on a VOICE track: OFF, TEXT): LANG OFF ES EN JA NO in LOFI's RTRG slot, LYRIC (TEXT, W1..W16, S1..S8) in DRUM's
  * IMAGE slot; a preset sets both (preset_t.xp) */
 #define P_VLANG P_LRTRG
 #define P_VLYR P_DXIMG
@@ -347,11 +347,11 @@ typedef struct {
     uint8_t pat;                 /* suggested pattern (PATTERNS[pat - 1], 0 = none): only a hint. A sound load
                                   * never touches the steps; SEQ > PATTERNS loads a pattern (ui.c pat_load). The
                                   * arp is the track's too: a preset does not set it */
-    uint8_t xp;                  /* (JIANT 0.8.5) VOICE: LANG | LYRIC << 2 (P_VLANG, P_VLYR; 0 = OFF, its vowels) */
+    uint8_t xp;                  /* (JIANT 0.8.5, NO) VOICE: LANG | LYRIC << 3 (P_VLANG, P_VLYR; 0 = OFF, its vowels) */
 } preset_t;
 #define FX(d, c, dl, r) .fx = {(d) + 1, (c) + 1, (dl) + 1, (r) + 1}
 #define PAT(n) .pat = (n)
-#define WORDS(lang, lyr) .xp = (uint8_t)((lang) | (lyr) << 2)
+#define WORDS(lang, lyr) .xp = (uint8_t)((lang) | (lyr) << 3)
 /* (JIANT 0.9.12, after Skiff by illuminus5) every factory preset's sound type, in the free bits of preset_t.mono (no
  * byte more; presets live in flash, nothing stored changes): PRESETS' LIST browses all engines' presets by it (ui.c
  * preset_in), the song generator keeps a bass's sounds off the other roles by it (gen.c gen_sound) */

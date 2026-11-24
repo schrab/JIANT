@@ -55,7 +55,7 @@ its own way the engines are named. P_E0..P_E7 (CC98 115..122) are the engine's E
 | 44 | DETUNE | 0..127 | 40 | |
 | 61 | ATK | 0..127 | 0 | (ANALOG PHASE WHEEL STRING NOISE FM6 ADD ANIMAL EXT) |
 | 61 | RTRG | 0..1 | 1 | (MATH) |
-| 61 | LANG | 0..9 | 0 | OFF ES EN JA RU DE FR ZH PT GN (VOICE) |
+| 61 | LANG | 0..4 | 0 | OFF ES EN JA NO (VOICE) |
 | 61 | KEY MAP | 0..1 | 1 | CLASSIC EXTENDED (DRUM) |
 | 62 | CHANCE | 0..127 | 0 | |
 | 63 | HUMAN | 0..127 | 127 | |

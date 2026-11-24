@@ -1391,8 +1391,8 @@ static void apply_preset_to(track_t *t, uint32_t pi)
     t->p[P_ED_FLT] = e->presets[pi].fenv;
     t->p[P_VOICE] = PR_MONO(&e->presets[pi]) ? V_LEGATO : V_POLY;   /* mono presets keep the legato feel */
     if (e == &ENG_FORMANT) {                          /* (0.8.5) VOICE's words: LANG, LYRIC (0: its vowels) */
-        t->p[P_VLANG] = (int16_t)(e->presets[pi].xp & 3u);
-        t->p[P_VLYR] = (int16_t)(e->presets[pi].xp >> 2);
+        t->p[P_VLANG] = (int16_t)(e->presets[pi].xp & 7u);
+        t->p[P_VLYR] = (int16_t)(e->presets[pi].xp >> 3);
     }
     {   /* the sends */
         static const uint8_t FX_DEF[4] = {0, 24, 28, 36};

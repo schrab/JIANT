@@ -93,7 +93,7 @@ ADD** and **EXT** (the USB audio input, or SWARM: a melody out of the Bluetooth 
   moves between spectra, BRIGHT and PARTIAL how many partials, SHIFT stretches them, COMB carves notches, DECAY lets
   the highs die first and MOTION sweeps the spectrum.
 - **VOICE** (formants, after klattsch), **WHEEL** (drawbar organ) and **WEST** (a west-coast voice: folders and a low-pass gate).
-  **VOICE sings words** (0.8.5): LANG ES / EN / JA, each note the next syllable of a lyric you type (on the device or
+  **VOICE sings words** (0.8.5): LANG ES / EN / JA / NO, each note the next syllable of a lyric you type (on the device or
   from the web editor) or of phrases the dice puts together from each language's word bank; POS and LOOP automate it.
 - **ANIMAL** (0.8.3): animal calls from physical models: a source that oscillates or strikes exciting a resonator,
   with a call's rhythm on top. **CMOS** is the owner's 40106 / 4093 breadboard "bird machine" (Schmitt-trigger RC

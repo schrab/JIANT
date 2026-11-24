@@ -73,6 +73,13 @@ const E = vm.runInNewContext(proto + `
    scrEncode: typeof scrEncode === "undefined" ? null : scrEncode, scrDecode: typeof scrDecode === "undefined" ? null : scrDecode })`,
 { setTimeout, clearTimeout, setInterval, clearInterval, console });
 
+/* (NO) VOICE's fifth language: the editor's LANG box offers it, and reads value 4 rather than clamping at 3 */
+{
+  const LANG = vm.runInNewContext(html.slice(html.indexOf("const LYR_LANG ="), html.indexOf("const LYR_SRC =")) + "; LYR_LANG", {});
+  ok(Array.isArray(LANG) && LANG.length === 5 && LANG[4] === "NO", "editor: LANG OFF ES EN JA NO (4 = NO)");
+  ok(/Math\.min\(4, dev\.dump\.p\[LYR_ID\.lang\] \| 0\)/.test(html), "editor: LANG box reads value 4 (NO), not clamped at 3");
+}
+
 /* the screen mirror (78 SCREEN, 79 SCREEN_DATA; firmware/src/editor_screen.c): the editor's encoder gives the firmware's
    bytes (a vector from tests/editor_test.c's scr_tap), its decoder the pixels back (a fill, runs, noise, a stride, frames
    that start mid-row); against the mock: SCREEN's query, on, the whole picture then the rows that change, off, and no
@@ -528,8 +535,13 @@ function mockTables() {
     fe.presets.forEach((p, k) => {
       const mp = me.presets[k];
       if (mp) cmp(`${fe.name} ${p.name}`, { e: mp.e, env: mp.env, mono: mp.mono, pat: mp.pat, xp: mp.xp || 0 },
-        { e: p.e, env: p.env, mono: p.mono, pat: p.pat, xp: p.xp || 0 });   /* (0.8.5: xp, VOICE's LANG | LYRIC << 2) */
+        { e: p.e, env: p.env, mono: p.mono, pat: p.pat, xp: p.xp || 0 });   /* (NO) xp = LANG | LYRIC << 3 */
     });
+    if (fe.name === "VOICE") {
+      const bz = fe.presets[fe.presets.length - 1];
+      ok(bz && bz.name === "BURZUM NO" && bz.xp === (4 | 1 << 3),
+         "editor/firmware: BURZUM NO last, xp = LANG NO | LYRIC W1 << 3");
+    }
   });
   cmp("PATTERNS", T.PATTERNS, fw.PATTERNS);
   const m2 = E.makeMockDevice({ auto: false });   /* the mock's power-on sounds: its parts 1..4, track 4's beat */
