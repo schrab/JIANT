@@ -126,6 +126,48 @@ static void demo_wav(const char *dir, const char *name, int32_t pi, const char *
     wav_hdr(w, frames);
     fclose(w);
 }
+/* a NO stanza demo: the dice's four lines, the sequencer advancing one a pattern loop (two turns) */
+static void stanza_demo_wav(const char *dir, int32_t pi, uint32_t seed)
+{
+    char path[512], stanza[80];
+    uint32_t k, i, j, frames = 0;
+    static int32_t o[2 * CTL];
+    FILE *w;
+    memset(trk, 0, sizeof trk);
+    memset(sing, 0, sizeof sing);
+    formant_nz = 0x2545F491;
+    host_tracks_init();
+    host_preset(&trk[0], eng_voice(), (uint32_t)pi);
+    trk[0].p[P_VLANG] = LG_NO;
+    trk[0].p[P_VLYR] = 3;                                 /* W3 */
+    trk[0].p[P_ATK] = 0; trk[0].p[P_SUS] = 127;
+    trk[0].p[P_CHOR] = trk[0].p[P_DLY] = trk[0].p[P_REV] = 0;
+    trk[0].p[P_SLEN] = 4;
+    for (k = 0; k < 4u; k++) {
+        trk[0].step[k].time = ST_NOTE; trk[0].step[k].n = 1;
+        trk[0].step[k].note[0] = 62 + (k & 1u) * 5u; trk[0].step[k].vel = 100;
+    }
+    lyr_dice(&trk[0], LG_NO, seed, stanza, sizeof stanza);
+    lyr_set(0, stanza);
+    trk[0].p[P_E7] = 30;                                  /* LOOP 1 */
+    song.g[G_BPM] = 120;
+    snprintf(path, sizeof path, "%s/no_stanza_W3.wav", dir);
+    if (!(w = fopen(path, "wb")))
+        return;
+    wav_hdr(w, 0);
+    seq_start();
+    for (k = 0; k < 8u; k++)                              /* two turns of the four lines */
+        for (i = 0; i < FS / 2u; i += CTL) {
+            mix_block(o, CTL);
+            for (j = 0; j < CTL; j++)
+                wav_put(w, o[2 * j], o[2 * j + 1]);
+            frames += CTL;
+        }
+    seq_stop();
+    fseek(w, 0, SEEK_SET);
+    wav_hdr(w, frames);
+    fclose(w);
+}
 
 /* (0.9.0) the English words resolved in the main loop (sing.c lyb_*, lyc[]): each entry what sy_word gives; and a
  * VOICE EN track sings the same with them as without (TEXT, W, S), sample for sample */
@@ -1222,6 +1264,70 @@ static void check_lyric(void)
         }
         check("LOOP 1: the lyric from its start every loop of the pattern; FREE: on through it", okl && okf);
     }
+    {   /* (NO) a four-line stanza: the dice writes line1|..|line4, each pattern loop sings the next line (W3) */
+        char buf[80], sbuf[80], ln[4][16] = {{0}}, fw[4][20] = {{0}};
+        const char *q;
+        uint32_t ln_n = 0, k2, nsep = 0, i, okd = 1, oks = 1;
+        int32_t pi = preset_of("BURZUM NO");
+        const sing_t *s;
+        static int32_t o[2 * CTL];
+
+        memset(trk, 0, sizeof trk);
+        memset(sing, 0, sizeof sing);
+        formant_nz = 0x2545F491;
+        host_tracks_init();
+        host_preset(&trk[0], eng_voice(), (uint32_t)pi);
+        trk[0].p[P_VLANG] = LG_NO;
+        trk[0].p[P_VLYR] = 3;                             /* W3 */
+        trk[0].p[P_ATK] = 0; trk[0].p[P_SUS] = 127;
+        trk[0].p[P_CHOR] = trk[0].p[P_DLY] = trk[0].p[P_REV] = 0;
+        trk[0].p[P_SLEN] = 4;
+        for (k2 = 0; k2 < 4u; k2++) {                     /* four NOTE steps: a four-syllable phrase */
+            trk[0].step[k2].time = ST_NOTE; trk[0].step[k2].n = 1;
+            trk[0].step[k2].note[0] = 60; trk[0].step[k2].vel = 100;
+        }
+        lyr_dice(&trk[0], LG_NO, 3, buf, sizeof buf);
+        for (q = buf; *q; q++)
+            nsep += *q == '|';
+        okd = nsep == 3;
+        q = buf;
+        for (ln_n = 0; ln_n < 4u; ln_n++) {
+            const char *e = strchr(q, '|');
+            uint32_t len = e ? (uint32_t)(e - q) : (uint32_t)strlen(q);
+            okd &= len > 0 && len <= 15;
+            memcpy(ln[ln_n], q, len); ln[ln_n][len] = 0;
+            for (i = 0; i < len && i + 1u < sizeof fw[0] && ln[ln_n][i] != ' '; i++)
+                fw[ln_n][i] = ln[ln_n][i];
+            fw[ln_n][i] = 0;
+            okd &= fw[ln_n][0] != 0;
+            if (!e) break;
+            q = e + 1;
+        }
+        okd &= ln_n == 3;
+        lyr_dice(&trk[0], LG_NO, 3, sbuf, sizeof sbuf);
+        okd &= !strcmp(buf, sbuf);                        /* same seed: same stanza */
+        lyr_dice(&trk[0], LG_NO, 4, sbuf, sizeof sbuf);
+        okd &= strcmp(buf, sbuf) != 0;                    /* another seed: another stanza */
+        printf("voice:   NO stanza: %s\n", buf);
+        check("NO dice: four lines joined by |, 1..15 chars, same seed the same stanza", okd);
+
+        lyr_set(0, buf);
+        trk[0].p[P_VLYR] = 3;
+        trk[0].p[P_E7] = 30;                              /* LOOP 1 */
+        song.g[G_BPM] = 120;
+        seq_start();
+        s = sing_view(&trk[0]);
+        for (i = 0; i < FS / 16u; i += CTL)               /* into the first step */
+            mix_block(o, CTL);
+        for (k2 = 0; k2 < 5u; k2++) {                     /* five loops: lines 1 2 3 4 1 */
+            printf("voice:   loop %u: sang %-12s, line %u's first word %s\n", k2, s->w, k2 % 4u, fw[k2 % 4u]);
+            oks &= !strcmp(s->w, fw[k2 % 4u]);
+            for (i = 0; i < FS / 2u; i += CTL)
+                mix_block(o, CTL);
+        }
+        seq_stop();
+        check("NO stanza: each pattern loop sings the next line's first word (1 2 3 4 1)", oks);
+    }
 }
 
 static void check_cost(void)
@@ -1347,6 +1453,7 @@ static void demos(const char *dir)
     demo_wav(dir, "rnd_en_W3", preset_of("SINGER EN"), "", RN, NELEM(RN));
     demo_wav(dir, "rnd_ja_W4", preset_of("UTA JA"), "", RN, NELEM(RN));
     demo_wav(dir, "rnd_en_scat_S1", preset_of("SCAT EN"), "", RN, NELEM(RN));
+    stanza_demo_wav(dir, preset_of("BURZUM NO"), 3);     /* the four-line NO stanza, one line a pattern loop */
     for (k = 7; k < ENG_FORMANT.npresets; k++) {         /* every word preset, its own dice */
         uint32_t i;
         snprintf(nm, sizeof nm, "preset_%02u_", k);

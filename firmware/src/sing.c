@@ -74,6 +74,9 @@ static const uint8_t LOOP_N[5] = {0, 1, 2, 4, 8};
  * lines the audio reads there; 0.8.5: LOWBUF is the main loop's and full) */
 static char lyr_txt[NTRK][LYR_LEN] __attribute__((section(".pool")));
 static uint8_t lyr_gen[NTRK];
+/* NO stanzas (lyr_dice's line1|..|line4): which line the audio is singing. Main loop resets it (lyr_set), audio
+ * advances it at a pattern loop (sing_block); the lyc[k].seq seqlock guards both against a rewrite of lyr_txt */
+static uint8_t lyr_line[NTRK] __attribute__((section(".pool")));
 
 /* ---------------------------------------------------------------------------------------------- phonemes --- */
 enum { PC_SIL, PC_VOW, PC_GLI, PC_LIQ, PC_TAP, PC_TRL, PC_NAS, PC_PLO, PC_FRI, PC_ASP, PC_AFF };
@@ -985,11 +988,34 @@ static uint32_t sy_gen_word(const track_t *t, sing_t *s, uint32_t lang, uint32_t
     return (uint32_t)j;                                  /* (English: the bank's word j, as it is) */
 }
 
+/* a NO stanza: a lyric of line1|line2|.. is sung one line per pattern loop. The text is the main loop's (lyr_set)
+ * and the line cursor the audio's (sing_block): callers take lyc.seq first and retry if it is odd or changed */
+static uint32_t stanza_lines(const char *txt)             /* 1: no '|', not a stanza */
+{
+    uint32_t k, n = 1;
+    for (k = 0; k < LYR_LEN && txt[k]; k++)
+        n += txt[k] == '|';
+    return n;
+}
+static void stanza_span(const char *txt, uint32_t idx, uint32_t *a, uint32_t *b)
+{
+    uint32_t k, n = 0;
+    *a = 0;
+    for (k = 0; k < LYR_LEN && txt[k]; k++)
+        if (txt[k] == '|') {
+            if (n == idx) { *b = k; return; }
+            n++;
+            *a = k + 1u;
+        }
+    for (*b = *a; *b < LYR_LEN && txt[*b]; (*b)++)
+        ;
+}
+
 /* the next word (or "-") of the lyric into s: its text, its syllables; 0 = none */
 static int sy_word_next(const track_t *t, sing_t *s, uint32_t lang, uint32_t lyr)
 {
-    uint32_t ns = 0, n = 0, tries, ti = (uint32_t)(t - trk) % NTRK;
-    char nw[24];
+    uint32_t ns = 0, n = 0, tries, ti = (uint32_t)(t - trk) % NTRK, stanza = lang == LG_NO && lyr > 0u && lyr <= LYR_NW;
+    char nw[24], line[LYR_LEN];
     const char *txt = lyr_txt[ti];
     const lyc_t *c = &lyc[ti];
     sw_t *sw = &sing_w[ti];
@@ -999,7 +1025,24 @@ static int sy_word_next(const track_t *t, sing_t *s, uint32_t lang, uint32_t lyr
         uint32_t seq = *(const volatile uint32_t *)&c->seq, p = 0, q = 0, mel = 0;
         RING_PUBLISH();
         s->mel = 0;
-        if (!lyr && txt[0]) {                            /* TEXT: its next token */
+        if (stanza) {
+            uint32_t a, b, m;
+            if (seq & 1u)
+                continue;                                /* the main loop is writing the lyric */
+            RING_PUBLISH();
+            if (stanza_lines(lyr_txt[ti]) > 1u) {        /* a stanza: the words of the current line only */
+                stanza_span(lyr_txt[ti], lyr_line[ti], &a, &b);
+                for (m = 0; a + m < b && m + 1u < sizeof line; m++)
+                    line[m] = lyr_txt[ti][a + m];
+                line[m] = 0;
+                RING_PUBLISH();
+                if (seq != *(const volatile uint32_t *)&c->seq)
+                    continue;                            /* rewritten meanwhile: read it again */
+                txt = line;                              /* a line's tokens, as TEXT */
+            } else
+                stanza = 0;                              /* a W lyric, not a stanza: the generator */
+        }
+        if ((!lyr || stanza) && txt[0]) {                /* TEXT (or a stanza line): its next token */
             if (!sy_tok(txt, (uint32_t)s->to + s->tl, &p, &q, &mel) && !sy_tok(txt, 0, &p, &q, &mel))
                 return 0;                                /* (no word in the whole text) */
             s->mel = (uint8_t)mel;
@@ -1420,6 +1463,17 @@ static void sing_block(track_t *t)
     } else if (song.playing && t->loops != s->loops) {   /* LOOP: back to the start every so many loops */
         uint32_t L = LOOP_N[((uint32_t)clamp(t->p[P_E7], 0, 127) * 5u) >> 7];
         s->loops = t->loops;
+        if (lang == LG_NO && lyr > 0u && lyr <= LYR_NW) {/* a NO stanza: the next line each pattern loop */
+            uint32_t seq = *(const volatile uint32_t *)&lyc[ti].seq, nl;
+            RING_PUBLISH();
+            nl = stanza_lines(lyr_txt[ti]);
+            RING_PUBLISH();
+            if (!(seq & 1u) && nl > 1u && seq == *(const volatile uint32_t *)&lyc[ti].seq) {
+                lyr_line[ti] = (uint8_t)((lyr_line[ti] + 1u) % nl);
+                RING_PUBLISH();
+                s->rst = 1;                              /* the next note starts the new line */
+            }
+        }
         if (L && t->loops % L == 0u)
             s->rst = 1;
     }
@@ -1467,6 +1521,7 @@ static void lyr_set(uint32_t k, const char *s)
     RING_PUBLISH();
     for (i = 0; i < LYR_LEN; i++)
         lyr_txt[k][i] = b[i];
+    lyr_line[k] = 0;                                     /* a new text: a stanza starts at its first line */
     lyc_build(k);                                        /* (0.9.0) its English words resolved */
     RING_PUBLISH();
     lyc[k].seq++;
@@ -1474,23 +1529,51 @@ static void lyr_set(uint32_t k, const char *s)
 }
 static const char *lyr_get(uint32_t k) { return lyr_txt[k % NTRK]; }
 
-/* a phrase of the generator as text (the NAME screen's dice: KNOB 3), syllables in the language's words */
+/* a phrase of the generator as text (the NAME screen's dice: KNOB 3), syllables in the language's words.
+ * NO: four phrases (one a pattern loop), joined with '|' and at most 15 characters each: LYR_LEN holds them */
 static void lyr_dice(const track_t *t, uint32_t lang, uint32_t seed, char *out, uint32_t max)
 {
     static sing_t g;                                     /* (main loop only) */
-    uint32_t m = 0, nw;
+    uint32_t m = 0, nw, li;
+    lang = lang ? lang : LG_ES;
     memset(&g, 0, sizeof g);
     g.phr = (uint16_t)seed;
-    lang = lang ? lang : LG_ES;
-    for (nw = 0; nw < 16u; nw++) {
-        uint32_t i;
-        sy_gen_word(t, &g, lang, 1u + seed % LYR_NW);
-        for (i = 0; g.w[i] && m + 2u < max; i++)
-            out[m++] = (char)(g.w[i] >= 'a' && g.w[i] <= 'z' ? g.w[i] - 32 : g.w[i]);
-        if (!g.prem)
-            break;
-        if (m + 2u < max)
-            out[m++] = ' ';
+    if (lang != LG_NO) {                                 /* ES EN JA: one line, byte for byte as before */
+        for (nw = 0; nw < 16u; nw++) {
+            uint32_t i;
+            sy_gen_word(t, &g, lang, 1u + seed % LYR_NW);
+            for (i = 0; g.w[i] && m + 2u < max; i++)
+                out[m++] = (char)(g.w[i] >= 'a' && g.w[i] <= 'z' ? g.w[i] - 32 : g.w[i]);
+            if (!g.prem)
+                break;
+            if (m + 2u < max)
+                out[m++] = ' ';
+        }
+        out[m] = 0;
+        return;
+    }
+    for (li = 0; li < 4u; li++) {
+        char line[16];
+        uint32_t lm = 0, i;
+        memset(&g, 0, sizeof g);
+        g.phr = (uint16_t)(seed + li * 0x27D4u);         /* line 1: the old dice's seed */
+        if (li) {
+            if (m + 2u >= max)
+                break;                                   /* no room for a separator and the 0 */
+            out[m++] = '|';
+        }
+        for (nw = 0; nw < 16u && lm + 1u < sizeof line; nw++) {
+            sy_gen_word(t, &g, lang, 1u + seed % LYR_NW);
+            for (i = 0; g.w[i] && lm + 1u < sizeof line; i++)
+                line[lm++] = (char)(g.w[i] >= 'a' && g.w[i] <= 'z' ? g.w[i] - 32 : g.w[i]);
+            if (!g.prem || lm + 1u >= sizeof line)
+                break;
+            if (lm + 2u < sizeof line)
+                line[lm++] = ' ';
+        }
+        line[lm] = 0;
+        for (i = 0; line[i] && m + 1u < max; i++)
+            out[m++] = line[i];
     }
     out[m] = 0;
 }
