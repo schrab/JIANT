@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2026 Leo Kuroshita (@kurogedelic), Hügelton Instruments
+# Copyright (C) 2026 Juan Ignacio Antonucci (Juan Jiant)
+# VOICE words (JIANT 0.8.5): the Norwegian / Old Norse word bank of the lyric generator (tools/gen_lyrics.py ->
+# felucca_lyrics.h). Plain ASCII, no accents (the device's font and keys have none): ae oe aa for ae, o-slash and
+# a-ring, dh th for eth and thorn, kj sj skj rs for their sounds, y for the front-rounded vowel. Norwegian is read by
+# rules on the device (sing.c sy_no_tok, tools/gen_lyrics.py no_tokens), so any respelled Norwegian text sings; these
+# words are only what the dice picks from. Curated single words only: no lyric lines or fragments.
+# A line: a theme (LOVE NIGHT SEA SKY ROAD DREAM FIRE) or FN (the small words of every theme), a category, words.
+#   N nouns (/f feminine), V verbs, A adjectives, D determiners, P prepositions, C conjunctions.
+# Modern Bokmal and Old Norse, weighted to night, dark, cold, nature and solitude.
+LOVE N: hjarte ande kyss blikk lengsel savn minne von venn brud/f brudgom kjaerleik lidenskap hug logn
+LOVE V: elske kysse famne lenge sakne minnes vake varme smelte lyse leve anda be
+LOVE A: varm mild saar blodig evig stille roleg open sann heilag fager
+NIGHT N: natt/f moerke skugge stjerne/f maane midnatt thoegn stillhet/f droem frost is snoe vind ulv ravn grav/f
+NIGHT N: kiste/f daudhi kval sorg/f lengsel skrik ekko royk
+NIGHT V: sov sovne vakne vake droeyme kviskre tyste skrike graate skjelve visne falle bloe
+NIGHT A: moerk kald svart stille frosen iskald einsam aud tom tyst bleik naken dau
+SEA N: hav sjoe/f bolge/f strand/f kyst oey/f holme skjaer fjord dyp salt tare fisk kval sel segl mast/f ror
+SEA N: anker havn/f brygge/f storm
+SEA V: flyt driv segle ro dukke symje vaske skylje bruse kviskre kalle
+SEA A: djup salt kald blaa groen vill open roleg endelaus stor
+SKY N: himmel sky/f sol/f maane stjerne/f torden lyn regn hagl dogg nordlys regnboge vind vaer rom kvelv
+SKY V: fly sveve stige falle skinne lyse blinke drage svinge kvile
+SKY A: hoeg vid endelaus blaa blank ljos sval fri evig skinande
+ROAD N: veg vei sti bru/f grind/f doerr/f hus hytte/f sal borg/f rike grense/f ferd/f reise/f spor stoev hest nord
+ROAD V: gaa fare reise vandre vende komme dra renne fylgje speide leite finne
+ROAD A: lang kort trong brei bratt sliten troeytt fjern naer framand
+DREAM N: droem sjel/f ande syn skugge spegel minne sagn eventyr visjon tone vise/f kvad rune/f lokk
+DREAM V: droeyme sveve hoeyre kjenne minnes gloeyme vakne sovne lytte sjaa
+DREAM A: fjern stille underleg mild mystisk evig open moerk tom
+FIRE N: ild/f flamme/f baal glo/f aske/f royk gnist/f varme kulde/f blod sverd skjold spyd krig kamp saar bane
+FIRE N: undergang ragnarok aera hevn
+FIRE V: brenne blaase rive bryte smelte slaa kjempe vinne drepe ofre hamre smi skrike
+FIRE A: varm raud gul svart hard sterk vill galen blodig brend
+FN D: min din hans hennar vaar deira den det dei denne dette nokon ingen all kvar eigen
+FN P: i pa av med mot til fraa ved over under gjennom mellom utan inn ut opp ned bak fram hos blant etter for om kring
+FN C: og men eller fordi naar som at medan mens sidan foer saa baade anten verken ja nei

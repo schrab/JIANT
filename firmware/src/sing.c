@@ -612,6 +612,7 @@ static uint32_t sy_word(uint32_t lang, const char *w, uint32_t n, uint8_t *out, 
 static const char *const TPL_ES[] = {"DNA", "VDN", "DNV", "PDN", "CDNV", "DNPDN", "VPDN", "NV", "PDNA"};
 static const char *const TPL_EN[] = {"CVDN", "DAN", "PDAN", "DNPDN", "CV", "VDN", "PDN", "DNPAN"};
 static const char *const TPL_JA[] = {"NPV", "ANPV", "NPN", "NPNPV", "AN", "NPAN"};
+static const char *const TPL_NO[] = {"DNA", "VDN", "DNV", "PDN", "CDNV", "DNPDN", "VPDN", "NV", "PDNA"};
 static const char *const SCAT_ES[] = {"la", "le", "li", "lo", "lu", "na", "ne", "no", "ma", "me", "mo", "pa", "pe", "po",
                                       "ta", "te", "to", "ba", "bo", "da", "do", "ra", "ri", "sa", "so", "ya", "yo", "cha",
                                       "fa", "ga", "go", "lan", "son", "tin", "bal", "mar", "sol", "dum", "pam"};
@@ -621,6 +622,7 @@ static const char *const SCAT_JA[] = {"ra", "ri", "ru", "re", "ro", "na", "ni", 
                                       "ki", "ku", "ke", "ko", "sa", "shi", "su", "se", "so", "ma", "mi", "mu", "me", "mo",
                                       "ha", "hi", "fu", "he", "ho", "ya", "yu", "yo", "wa", "pa", "pi", "pu", "pe", "po",
                                       "n"};
+static const char *const SCAT_NO[] = {"la", "le", "li", "lo", "lu", "ra", "ri", "ta", "ti", "ma", "mo"};
 static uint32_t sy_rnd(uint32_t *r)
 {
     uint32_t x = *r ? *r : 0x9E3779B9u;
@@ -636,6 +638,8 @@ typedef struct {
     const uint8_t *meta;
     const uint16_t (*grp)[6];
 } ly_bank_t;
+/* NO has its own bank at index 3; the other languages keep their old mapping */
+static uint32_t ly_bank_idx(uint32_t lang) { return lang == LG_NO ? 3u : (lang - 1u) % 3u; }
 static uint32_t ly_char(const ly_bank_t *b, uint32_t bit)
 {
     uint32_t byte=bit>>3;
@@ -652,16 +656,17 @@ static __attribute__((noinline)) const char *ly_word(const ly_bank_t *b, uint32_
     out[m]=0;
     return out;
 }
-static const ly_bank_t LY_BANK[3] = {
+static const ly_bank_t LY_BANK[4] = {
     {LY_ES_TXT, LY_ES_OFF, LY_ES_META, LY_ES_GRP},
     {LY_EN_TXT, LY_EN_OFF, LY_EN_META, LY_EN_GRP},
     {LY_JA_TXT, LY_JA_OFF, LY_JA_META, LY_JA_GRP},
+    {LY_NO_TXT, LY_NO_OFF, LY_NO_META, LY_NO_GRP},
 };
 static uint32_t ly_meta(const ly_bank_t *b,uint32_t j) {return b->meta[j>>1]>>((j&1u)*4u)&15u;}
 /* a word of category cat in the theme with at most maxs syllables (exact: just that many): its index, -1 none */
 static int32_t ly_pick(uint32_t lang, uint32_t theme, uint32_t cat, uint32_t maxs, int exact, uint32_t *r)
 {
-    const ly_bank_t *b = &LY_BANK[(lang - 1u) % 3u];
+    const ly_bank_t *b = &LY_BANK[ly_bank_idx(lang)];
     uint32_t st = b->grp[theme][cat]&511u, n = b->grp[theme][cat]>>9, k, o;
     if (!n)
         return -1;
@@ -764,7 +769,7 @@ static uint32_t sy_norm_lang(uint32_t lang, const char *s, uint32_t n, char *d, 
 #define LYB_N (LY_EN_NW + NELEM(SCAT_EN) + 1u)
 #define LYB_PH 1856u                                     /* (2 + n a word: tests/voice_test.c checks they all fit) */
 #define LYC_N 192u
-static const char *const VOCABLE[3] = {"la", "oh", "ra"};   /* ES EN JA: what is sung when no word fits */
+static const char *const VOCABLE[4] = {"la", "oh", "ra", "oh"};   /* ES EN JA NO: what is sung when no word fits */
 static uint16_t lyb_at[LYB_N] __attribute__((section(".pool")));   /* 1 + the word's entry in lyb_ph, 0 none */
 static uint8_t lyb_ph[LYB_PH] __attribute__((section(".pool")));
 static uint8_t lyb_ok __attribute__((section(".pool")));   /* (the pool: the RAM region's small globals as they were) */
@@ -892,7 +897,7 @@ static uint32_t sy_gen_word(const track_t *t, sing_t *s, uint32_t lang, uint32_t
         s->prem--;
         return LYB_NONE;
     }
-    const ly_bank_t *b = &LY_BANK[(lang - 1u) % 3u];
+    const ly_bank_t *b = &LY_BANK[ly_bank_idx(lang)];
     uint32_t src = LYB_NONE;
     if (!s->prem) {                                      /* a new phrase */
         s->prem = (uint8_t)sy_phrase_len(t);
@@ -903,8 +908,9 @@ static uint32_t sy_gen_word(const track_t *t, sing_t *s, uint32_t lang, uint32_t
         s->tps = 0;
     }
     if (lyr > LYR_NW) {                                  /* scat: 1 .. 3 syllables (English: one) */
-        const char *const *L = lang == LG_ES ? SCAT_ES : lang == LG_EN ? SCAT_EN : SCAT_JA;
-        uint32_t nl = lang == LG_ES ? NELEM(SCAT_ES) : lang == LG_EN ? NELEM(SCAT_EN) : NELEM(SCAT_JA);
+        const char *const *L = lang == LG_ES ? SCAT_ES : lang == LG_EN ? SCAT_EN : lang == LG_JA ? SCAT_JA : SCAT_NO;
+        uint32_t nl = lang == LG_ES ? NELEM(SCAT_ES) : lang == LG_EN ? NELEM(SCAT_EN) :
+                      lang == LG_JA ? NELEM(SCAT_JA) : NELEM(SCAT_NO);
         uint32_t ns = lang == LG_EN ? 1u : 1u + sy_rnd(&s->rng) % 3u, k, m = 0;
         if (ns > s->prem) ns = s->prem;
         for (k = 0; k < ns; k++) {
@@ -921,8 +927,9 @@ static uint32_t sy_gen_word(const track_t *t, sing_t *s, uint32_t lang, uint32_t
         return src;
     }
     for (tries = 0; tries < 10u && j < 0; tries++) {
-        const char *const *T = lang == LG_ES ? TPL_ES : lang == LG_EN ? TPL_EN : TPL_JA;
-        uint32_t nt = lang == LG_ES ? NELEM(TPL_ES) : lang == LG_EN ? NELEM(TPL_EN) : NELEM(TPL_JA), cat, th;
+        const char *const *T = lang == LG_ES ? TPL_ES : lang == LG_EN ? TPL_EN : lang == LG_JA ? TPL_JA : TPL_NO;
+        uint32_t nt = lang == LG_ES ? NELEM(TPL_ES) : lang == LG_EN ? NELEM(TPL_EN) :
+                      lang == LG_JA ? NELEM(TPL_JA) : NELEM(TPL_NO), cat, th;
         const char *q;
         if (s->tpl == 0xFFu || !T[s->tpl % nt][s->tps]) {
             s->tpl = (uint8_t)(sy_rnd(&s->rng) % nt);
@@ -955,7 +962,7 @@ static uint32_t sy_gen_word(const track_t *t, sing_t *s, uint32_t lang, uint32_t
         for (tries = 0; tries < 6u && j < 0; tries++)
             j = ly_pick(lang, (sy_rnd(&s->rng) % 7u + 5u) % 8u, tries & 1u, s->prem, 1, &s->rng);
     if (j < 0) {                                         /* a vocable */
-        const char *v = lang == LG_ES ? VOCABLE[0] : lang == LG_EN ? VOCABLE[1] : VOCABLE[2];
+        const char *v = lang == LG_ES ? VOCABLE[0] : lang == LG_EN ? VOCABLE[1] : lang == LG_JA ? VOCABLE[2] : VOCABLE[3];
         src = LYB_N - 1u;
         s->w[0] = v[0];
         s->w[1] = v[1];

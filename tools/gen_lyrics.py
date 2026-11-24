@@ -8,8 +8,9 @@ constant tables (firmware/src/sing.c reads them), from tools/lyrics/:
                 (the letters shared with the word before), with an index every EN_BLK words (binary search, then at
                 most EN_BLK compared); (0.9.0) Huffman-coded (en_dict_pack: the shared count, the letters, the
                 phonemes, each their own canonical code), a block of EN_BLK from a byte (8: was 16 as bytes)
-  es.txt en.txt ja.txt   the generator's banks: words by theme and category, each with its syllables (Spanish by the
-                same rules sing.c reads it with, sy_es below; English from the dictionary; Japanese in morae)
+  es.txt en.txt ja.txt no.txt   the generator's banks: words by theme and category, each with its syllables (Spanish by the
+                same rules sing.c reads it with, sy_es below; English from the dictionary; Japanese in morae; Norwegian by
+                no_tokens's rules, no_nsyl below)
 Spanish and Japanese text is read by rules on the device; English only through the dictionary (and rough letter rules
 for a word it lacks). The phoneme list here is the order of sing.c's PHON[] (a static assert checks the count).
   tools/gen_lyrics.py OUT.h"""
@@ -616,9 +617,9 @@ def main():
              c_strs('"' + "".join(f"\\x{b:02x}" for b in p) + '"' for _, p in ruled_ph) + "};")
     L.append("#endif")
     # the banks
-    nsyl = {"es": es_nsyl, "en": lambda w: nsyl_en[w] if w in nsyl_en else 0, "ja": ja_nmora}
+    nsyl = {"es": es_nsyl, "en": lambda w: nsyl_en[w] if w in nsyl_en else 0, "ja": ja_nmora, "no": no_nsyl}
     counts = {}
-    for lang in ("es", "en", "ja"):
+    for lang in ("es", "en", "ja", "no"):
         rows = load_bank(lang, nsyl[lang])
         bank_words = []
         txt, offs, meta, grp = bytearray(), [], [], [[[0, 0] for _ in CATS] for _ in THEMES]
@@ -657,7 +658,7 @@ def main():
     out.write_text("\n".join(L) + "\n")
     print(f"lyrics: {len(PHONEMES)} phonemes; English dictionary {len(words)} words, "
           f"{len(blob) + 2 * len(idx) + len(tp) + len(tl) + len(th) + nlut + 2*len(pairs)} B (Huffman/pairs; {plain} B as bytes); "
-          f"banks ES {counts['es']} EN {counts['en']} JA {counts['ja']} words -> {out}")
+          f"banks ES {counts['es']} EN {counts['en']} JA {counts['ja']} NO {counts['no']} words -> {out}")
 
 
 if __name__ == "__main__":

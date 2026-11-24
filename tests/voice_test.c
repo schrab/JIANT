@@ -474,7 +474,7 @@ static void check_reading(void)
               "the generator's too; with it back as before", ok && strcmp(rb, b) && sy_en_find("love", 4, ph) > 0);
     }
     {   /* the banks: every word's syllables as gen_lyrics.py counted them (the generator fits phrases by them) */
-        static const char *const LN[4] = {"", "ES", "EN", "JA"};
+        static const char *const LN[5] = {"", "ES", "EN", "JA", "NO"};
         uint32_t bad_w = 0, tot = 0;
         for (l = LG_ES; l <= LG_JA; l++) {
             const char *const *ref=l==LG_ES?LY_ES_BANK_REF_W:l==LG_EN?LY_EN_BANK_REF_W:LY_JA_BANK_REF_W;
@@ -494,8 +494,24 @@ static void check_reading(void)
                 }
             }
         }
-        snprintf(what, sizeof what, "the banks: all %u words' syllables as the generator counts them (ES %u EN %u JA %u words)",
-                 tot, (unsigned)LY_ES_NW, (unsigned)LY_EN_NW, (unsigned)LY_JA_NW);
+        {   /* NO has its own word list; no separate reference array, so check it the same way without one */
+            const ly_bank_t *bk = &LY_BANK[3];
+            for (k = 0; k < LY_NO_NW; k++) {
+                uint8_t ph[SW_MAX];
+                char nw2[24];
+                char word[20];
+                const char *w = ly_word(bk, k, word);
+                (void)sy_word(LG_NO, nw2, sy_norm(w, (uint32_t)strlen(w), nw2, sizeof nw2), ph, &n);
+                tot++;
+                if (n != (ly_meta(bk,k) & 7u)) {
+                    if (bad_w++ < 8u)
+                        printf("voice:   NO %s: %u syllables here, %u in the bank\n", w, n, ly_meta(bk,k) & 7u);
+                }
+            }
+        }
+        snprintf(what, sizeof what,
+                 "the banks: all %u words' syllables as the generator counts them (ES %u EN %u JA %u NO %u words)",
+                 tot, (unsigned)LY_ES_NW, (unsigned)LY_EN_NW, (unsigned)LY_JA_NW, (unsigned)LY_NO_NW);
         check_dict(what, !bad_w);
     }
 }
@@ -539,12 +555,25 @@ static uint32_t gen_text(uint32_t lang, uint32_t lyr, uint32_t theme, uint32_t n
     *syl = all;
     return m;
 }
+/* is w in lang's bank, category cat (any theme, FN too)? */
+static int bank_cat_has(uint32_t lang, uint32_t cat, const char *w)
+{
+    const ly_bank_t *bk = &LY_BANK[lang - 1u];
+    uint32_t t, k;
+    for (t = 0; t < 9u; t++) {
+        uint32_t st = bk->grp[t][cat][0], n = bk->grp[t][cat][1];
+        for (k = 0; k < n; k++)
+            if (!strcmp(ly_word(bk, st + k), w))
+                return 1;
+    }
+    return 0;
+}
 static void check_generator(void)
 {
     char a[600], b[600], c[600], what[700];
     uint32_t ok, oks, l, s1, s2, s3;
-    static const char *const LN[4] = {"", "ES", "EN", "JA"};
-    for (l = LG_ES; l <= LG_JA; l++) {
+    static const char *const LN[5] = {"", "ES", "EN", "JA", "NO"};
+    for (l = LG_ES; l <= LG_NO; l++) {
         gen_text(l, 3, 4, 3, 7, a, sizeof a, &s1);
         gen_text(l, 3, 4, 3, 7, b, sizeof b, &s2);
         gen_text(l, 4, 4, 3, 7, c, sizeof c, &s3);
@@ -566,13 +595,14 @@ static void check_generator(void)
     printf("voice:   EN S1: %.120s\n", b);
     {   /* every word of W a real one: in the bank (or the vocable) */
         uint32_t k, w, bad_w = 0;
-        for (l = LG_ES; l <= LG_JA; l++)
+        for (l = LG_ES; l <= LG_NO; l++)
             for (k = 1; k <= 4u; k++) {
                 char *p, *q;
                 gen_text(l, k, 4, 4, 11, a, sizeof a, &s1);
                 for (p = a; *p; p = q) {
                     const ly_bank_t *bk = &LY_BANK[l - 1u];
-                    uint32_t nwds = l == LG_ES ? LY_ES_NW : l == LG_EN ? LY_EN_NW : LY_JA_NW, found = 0, n;
+                    uint32_t nwds = l == LG_ES ? LY_ES_NW : l == LG_EN ? LY_EN_NW : l == LG_JA ? LY_JA_NW : LY_NO_NW,
+                             found = 0, n;
                     while (*p == ' ' || *p == '/') p++;
                     for (q = p; *q && *q != ' '; q++)
                         ;
@@ -588,7 +618,19 @@ static void check_generator(void)
                     bad_w += !found;
                 }
             }
-        check("generator: every word of W1..W4 in ES EN JA a bank word (the adjective's -a after a feminine noun)", !bad_w);
+        check("generator: every word of W1..W4 in ES EN JA NO a bank word (the adjective's -a after a feminine noun)", !bad_w);
+    }
+    {   /* Norwegian: each theme's rows give words; the design's pinned words in their categories */
+        uint32_t t, whole = 0;
+        for (t = 0; t < 8u; t++) {
+            gen_text(LG_NO, 1, t, 1, 9, a, sizeof a, &s1);
+            whole += s1 && a[0] != 0;
+            printf("voice:   NO theme %u: %.100s\n", (unsigned)t, a);
+        }
+        check("generator NO: each of the 8 themes gives a whole 9-note phrase", whole == 8u);
+        check("Norwegian bank: dau and moerk (A), natt, ragnarok and aera (N) in their categories",
+              bank_cat_has(LG_NO, 2, "dau") && bank_cat_has(LG_NO, 2, "moerk") && bank_cat_has(LG_NO, 0, "natt") &&
+              bank_cat_has(LG_NO, 0, "ragnarok") && bank_cat_has(LG_NO, 0, "aera"));
     }
 }
 
@@ -1413,7 +1455,7 @@ static void check_theme(void)
     {                                                    /* (0.9.17) between the detents: the blend */
         static char t8[2048], tv[2048];
         uint32_t s1, l, same = 1, diff = 1;
-        for (l = LG_ES; l <= LG_JA; l++) {
+        for (l = LG_ES; l <= LG_NO; l++) {
             gen_text(l, 1, 0, 6, 9, t8, sizeof t8, &s1);
             for (k = 0; k <= 8u; k += 4u) {              /* a name's low half: its words, bit for bit (projects) */
                 gen_text(l, 1, 0x100u + k, 6, 9, tv, sizeof tv, &s1);
