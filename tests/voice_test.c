@@ -337,6 +337,10 @@ static void check_reading(void)
         {"love", "|l ah v"}, {"my", "|m aa ih"}, {"time", "|t aa ih m"}, {"beautiful", "|b y u |t ax |f ax l"},
         {"water", "|w ao |t er"}, {"strong", "|s t r ao ng"}, {"the", "|dh ax"}, {"Dont", "|d o uh n t"},
     };
+    static const char *const NO[][2] = {
+        {"natt", "|n a t"}, {"moerk", "|m oe r k"}, {"sjol", "|sh o l"}, {"sjoel", "|sh oe l"},
+        {"dau", "|d ao u"}, {"thi", "|th i"}, {"aera", "|ae |r a"},
+    };
     char b[256], what[160];
     uint32_t k, ok = 1, l, n;
     for (k = 0; k < NELEM(ES); k++) {
@@ -358,6 +362,19 @@ static void check_reading(void)
         if (strcmp(b, EN[k][1])) { printf("voice:   EN %-12s %s (want %s)\n", EN[k][0], b, EN[k][1]); ok = 0; }
     }
     check_dict("English through the dictionary (CMU, syllabified): love my time beautiful water strong the don't", ok);
+    for (k = 0, ok = 1; k < NELEM(NO); k++) {
+        g2p_str(LG_NO, NO[k][0], b, sizeof b);
+        if (strcmp(b, NO[k][1])) { printf("voice:   NO %-12s %s (want %s)\n", NO[k][0], b, NO[k][1]); ok = 0; }
+    }
+    snprintf(what, sizeof what, "Norwegian by rules: %u words (ae oe, sj, au offglide, th, doubled consonant, the r onset)",
+             (unsigned)NELEM(NO));
+    check(what, ok);
+    {   /* the two Norwegian vowels' names and formant targets (adult male, within their ranges) */
+        ok = PH_COUNT == 48 && !strcmp(PH_NAME[PH_OE], "oe") && !strcmp(PH_NAME[PH_YV], "yv") &&
+             PHON[PH_OE].f1 >= 350 && PHON[PH_OE].f1 <= 500 && PHON[PH_OE].f2 >= 900 && PHON[PH_OE].f2 <= 1200 &&
+             PHON[PH_YV].f1 >= 250 && PHON[PH_YV].f1 <= 350 && PHON[PH_YV].f2 >= 1600 && PHON[PH_YV].f2 <= 2000;
+        check("Norwegian vowels: PH_OE (oe) and PH_YV (yv), the phoneme count 48, their F1 / F2 in range", ok);
+    }
     {   /* every dictionary word found, with at least a syllable; an unknown word by the letter rules.
          * (0.9.0: the dictionary Huffman-coded) each word's phonemes exactly gen_lyrics.py's (LY_EN_REF_*: the words as
          * text); every word cut short, one letter more and one changed at its end: not found unless itself a word */
@@ -1415,7 +1432,8 @@ static void check_theme(void)
 int main(int argc, char **argv)
 {
     if (argc > 2 && !strcmp(argv[1], "--g2p")) {
-        uint32_t lang = !strcmp(argv[2], "JA") ? LG_JA : !strcmp(argv[2], "EN") ? LG_EN : LG_ES;
+        uint32_t lang = !strcmp(argv[2], "JA") ? LG_JA : !strcmp(argv[2], "EN") ? LG_EN :
+                        !strcmp(argv[2], "NO") ? LG_NO : LG_ES;
         int a;
         char b[256];
         for (a = 3; a < argc; a++) {
