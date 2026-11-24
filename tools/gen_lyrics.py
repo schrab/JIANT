@@ -33,9 +33,10 @@ PHONEMES = [
     ("F", "f"), ("S", "s"), ("SH", "sh"), ("H", "h"), ("X", "x"), ("TH", "th"), ("V", "v"), ("Z", "z"),
     ("ZH", "zh"), ("DH", "dh"),
     ("CH", "ch"), ("TS", "ts"), ("J", "j"),
+    ("OE", "oe"), ("YV", "yv"),                                                           # NO
 ]
 PH = {c: i for i, (c, _) in enumerate(PHONEMES)}
-VOWELS = {PH[c] for c in ("A", "E", "I", "O", "U", "UJ", "IH", "EH", "AE", "AA", "AO", "UH", "AH", "ER", "AX")}
+VOWELS = {PH[c] for c in ("A", "E", "I", "O", "U", "UJ", "IH", "EH", "AE", "AA", "AO", "UH", "AH", "ER", "AX", "OE", "YV")}
 assert len(PHONEMES) < 64
 
 # ------------------------------------------------------------------------------------------ English (CMU) ---
@@ -332,6 +333,87 @@ def syllabify(tok):
 
 def es_nsyl(w):
     return syllabify(es_tokens(w))[1]
+
+
+# ---------------------------------------------------------------------------------------------- Norwegian ---
+def no_tokens(w):
+    """letters -> [(code, kind)], kind S a vowel, W an offglide, C a consonant (sing.c sy_no_tok): the ASCII
+    respelling ae oe aa dh th kj sj skj rs, the diphthongs ei au oej, y (YV), a doubled consonant one phoneme"""
+    out, i, n = [], 0, len(w)
+
+    def vowel(c):
+        return c != "" and c in "aeiouy"
+
+    while i < n:
+        c, nx, nx2 = w[i], w[i + 1] if i + 1 < n else "", w[i + 2] if i + 2 < n else ""
+        if c == "o" and nx == "e" and nx2 == "j":
+            out += [(PH["OE"], "S"), (PH["Y"], "W")]
+            i += 3
+        elif c == "a" and nx == "e":
+            out.append((PH["AE"], "S"))
+            i += 2
+        elif c == "a" and nx == "a":
+            out.append((PH["AO"], "S"))
+            i += 2
+        elif c == "o" and nx == "e":
+            out.append((PH["OE"], "S"))
+            i += 2
+        elif c == "e" and nx == "i":
+            out += [(PH["E"], "S"), (PH["I"], "W")]
+            i += 2
+        elif c == "a" and nx == "u":
+            out += [(PH["AO"], "S"), (PH["U"], "W")]
+            i += 2
+        elif c in "aeiou":
+            out.append((PH[c.upper()], "S"))
+            i += 1
+        elif c == "y":
+            out.append((PH["YV"], "S"))
+            i += 1
+        elif c == "d" and nx == "h":
+            out.append((PH["DH"], "C"))
+            i += 2
+        elif c == "t" and nx == "h":
+            out.append((PH["TH"], "C"))
+            i += 2
+        elif c == "k" and nx == "j":
+            out.append((PH["SH"], "C"))
+            i += 2
+        elif c == "s" and nx == "k" and nx2 == "j":
+            out.append((PH["SH"], "C"))
+            i += 3
+        elif c == "s" and nx == "j":
+            out.append((PH["SH"], "C"))
+            i += 2
+        elif c == "r" and nx == "s":
+            out.append((PH["SH"], "C"))
+            i += 2
+        elif c == "n" and nx == "g":
+            out.append((PH["NG"], "C"))
+            i += 2
+        elif c == "n" and nx == "y":
+            out.append((PH["NY"], "C"))
+            i += 2
+        elif c == "x":
+            out += [(PH["K"], "C"), (PH["S"], "C")]
+            i += 1
+        elif c == "c":
+            out.append((PH["S" if nx in ("e", "i", "y") else "K"], "C"))
+            i += 2 if c == nx else 1
+        elif c == "h" and vowel(nx):
+            out.append((PH["H"], "C"))
+            i += 1
+        elif c in "bdfgjklmnpqrstvwz":
+            out.append((PH["RT" if c == "r" else "Y" if c == "j" else "V" if c in "vw" else
+                            "K" if c == "q" else c.upper()], "C"))
+            i += 2 if c == nx else 1
+        else:
+            i += 1
+    return out
+
+
+def no_nsyl(w):
+    return syllabify(no_tokens(w))[1]
 
 
 # ----------------------------------------------------------------------------------------------- Japanese ---
