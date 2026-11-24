@@ -1971,7 +1971,7 @@ you open GEN), follows **no genre** and breaks their rules on purpose, so every 
   a tritone ..), not just a whole step up.
 - **Time**: a chord 8 to 48 steps, the loop 8 to 64 (odd metres: 3/4, 5/4, 7/8 ..); **each track its own LEN and
   DIV** (1/8, 1/32, 8T, 16T: polyrhythm), a track's own swing, drum hits off the grid.
-- **Sound**: **any engine on any role**, ANIMAL and VOICE included (VOICE singing words in ES / EN / JA, a phrase or
+- **Sound**: **any engine on any role**, ANIMAL and VOICE included (VOICE singing words in ES / EN / JA / NO, a phrase or
   scat), FM6, ANIMAL and VOICE on two tracks at most; DRUM-X's octaves per sound on the steps (x2 x4 x8, SHORT, GHOST,
   FLAM); wide pans, glides, vibratos, detune, distortion types (V10.8: glide, vibrato and detune less often and
   shallower: less pitch wobble).

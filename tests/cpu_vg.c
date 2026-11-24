@@ -189,14 +189,18 @@ int main(void)
         snprintf(name, sizeof name, "eng/WEST.%s", i ? "TRI" : "HEAVY");
         vg_section(name);
     }
-    for (i = 0; i < 2u; i++) {                          /* (0.8.5) VOICE singing words (sing.c): 4 voices, a lyric */
+    for (i = 0; i < 4u; i++) {                          /* (0.8.5; +NO) VOICE singing words (sing.c): 4 voices, a lyric */
+        static const struct { const char *lg, *pre, *lyr; } VL[4] = {
+            {"ES", "CANTOR ES", "construir estrellas"}, {"EN", "SINGER EN", "strength through the starlight"},
+            {"JA", "UTA JA", "sakura"}, {"NO", "BURZUM NO", "natt"} };
+
         for (e = 0; e < NENGINES && ENGINES[e] != &ENG_FORMANT; e++)
             ;
         vg_quiet();
-        lyr_set(0, i ? "strength through the starlight" : "construir estrellas");
-        vg_part(0, e, vg_preset(e, i ? "SINGER EN" : "CANTOR ES"), 4);
+        lyr_set(0, VL[i].lyr);
+        vg_part(0, e, vg_preset(e, VL[i].pre), 4);
         trk[0].p[P_VLYR] = 0;
-        snprintf(name, sizeof name, "eng/VOICE.%s", i ? "EN" : "ES");
+        snprintf(name, sizeof name, "eng/VOICE.%s", VL[i].lg);
         vg_section(name);
     }
     for (i = 0; i < 5u; i++) {

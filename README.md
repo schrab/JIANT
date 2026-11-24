@@ -284,6 +284,9 @@ ADD** and **EXT** (the USB audio input, or SWARM: a melody out of the Bluetooth 
   **VOICE sings words** (0.8.5): LANG ES / EN / JA / RU / DE / FR / ZH / PT / GN / NO, each note the next syllable of a lyric you type (on the device or
 
   from the web editor) or of phrases the dice puts together from each language's word bank; POS and LOOP automate it.
+   the Norwegian dice writes four-line stanzas, one line per pattern loop, and **BURZUM NO** loads one;
+   the track's words are fitted to the pattern by POS and LOOP.
+
 - **ANIMAL** (0.8.3): animal calls from physical models: a source that oscillates or strikes exciting a resonator,
   with a call's rhythm on top. **CMOS** is the owner's 40106 / 4093 breadboard "bird machine" (Schmitt-trigger RC
   oscillators: a slow one gates and sweeps a fast one, the exponential charge is the chirp's hook), **PULSE** an
