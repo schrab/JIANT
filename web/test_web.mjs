@@ -74,6 +74,15 @@ const E = vm.runInNewContext(proto + `
    readDeviceMenu: typeof readDeviceMenu === "undefined" ? null : readDeviceMenu, fm6Bank, crc32, lyricText })`,
 { setTimeout, clearTimeout, setInterval, clearInterval, console });
 
+
+
+/* (NO) VOICE's new language: the editor's LANG box offers it after GN, and reads its index */
+{
+  const LANG = vm.runInNewContext(html.slice(html.indexOf("const LYR_LANG ="), html.indexOf("const LYR_SRC =")) + "; LYR_LANG", {});
+  ok(Array.isArray(LANG) && LANG.length === 11 && LANG[10] === "NO", "editor: LANG OFF..GN NO (10 = NO)");
+  ok(/Math\.min\(10, dev\.dump\.p\[LYR_ID\.lang\] \| 0\)/.test(html), "editor: LANG box reads value 10 (NO), not clamped at 9");
+}
+
 /* (JIANT 0.6.11, from Felucca 1.4.1's test) FM6's voice bank (cmds 74..77; the editor's fm6Bank) against the mock: INFO 56 01 32, a 32-voice .syx
    sent whole (BEGIN, 32 WRITEs, END with the CRC), LIST's names, SLOT B1..B32 loading the exact records, empty bank
    slots refused, a wrong CRC and a WRITE without BEGIN changing nothing, a new bank leaving a track's voice its own */
@@ -457,8 +466,13 @@ function mockTables() {
     fe.presets.forEach((p, k) => {
       const mp = me.presets[k];
       if (mp) cmp(`${fe.name} ${p.name}`, { e: mp.e, env: mp.env, mono: mp.mono, pat: mp.pat, xp: mp.xp || 0 },
-        { e: p.e, env: p.env, mono: p.mono, pat: p.pat, xp: p.xp || 0 });   /* (0.8.5: xp, VOICE's LANG | LYRIC << 2) */
+        { e: p.e, env: p.env, mono: p.mono, pat: p.pat, xp: p.xp || 0 });   /* (NO) xp = LANG | LYRIC << 3 */
     });
+    if (fe.name === "VOICE") {
+      const bz = fe.presets[fe.presets.length - 1];
+      ok(bz && bz.name === "BURZUM NO" && bz.xp === (4 | 1 << 3),
+         "editor/firmware: BURZUM NO last, xp = LANG NO | LYRIC W1 << 3");
+    }
   });
   cmp("PATTERNS", T.PATTERNS, fw.PATTERNS);
   const m2 = E.makeMockDevice({ auto: false });   /* the mock's power-on sounds: its parts 1..4, track 4's beat */

@@ -3,8 +3,9 @@
 /* VOICE words test (src/sing.c, src/eng_formant.c, JIANT 0.8.5) on the host, through hostsim.c as regress.c.
  *   build/host/voice_test [DEMODIR]          (run_tests.sh: build/voice_demo)
  *   build/host/voice_test --g2p LANG WORDS..  (prints each word's phonemes, | a syllable)
- * 1. reading: Spanish by rules (a word list: phonemes and syllables), Japanese romaji -> morae, English through the
- *    dictionary (and its letter rules for a word it lacks); every bank word's syllables as gen_lyrics.py counted them.
+ * 1. reading: Spanish and Norwegian by rules (a word list: phonemes and syllables), Japanese romaji -> morae, English
+ *    through the dictionary (and its letter rules for a word it lacks); every bank word's syllables as gen_lyrics.py
+ *    counted them.
  * 2. the generator: the same phrase for the same seed, another for another seed, as many syllables as the pattern's
  *    notes, every word a real one of the bank.
  * 3. the sound: the vowels' formants (an LPC-free peak pick on the spectrum of a held vowel) inside their ranges;
@@ -1037,7 +1038,7 @@ static void check_presets(void)
         double m = 0, r;
         uint32_t i, j, live = 0;
         vsetup((int32_t)k, 0, "la sol mar canta");
-        trk[0].p[P_VLYR] = ENG_FORMANT.presets[k].xp >> 2;
+        trk[0].p[P_VLYR] = ENG_FORMANT.presets[k].xp >> 3;
         for (j = 0; j < 4u; j++) {
             trk_note_on(&trk[0], 60 + j * 2u, 100);
             vrender(y + j * (FS / 2), FS / 2);
@@ -1057,7 +1058,7 @@ static void check_presets(void)
         {   /* the same twice */
             static double z[FS];
             vsetup((int32_t)k, 0, "la sol mar canta");
-            trk[0].p[P_VLYR] = ENG_FORMANT.presets[k].xp >> 2;
+            trk[0].p[P_VLYR] = ENG_FORMANT.presets[k].xp >> 3;
             trk_note_on(&trk[0], 60, 100);
             vrender(z, FS / 2);
             okr &= !memcmp(z, y, (FS / 2) * sizeof z[0]);
@@ -1097,6 +1098,17 @@ static void check_presets(void)
             snprintf(what, sizeof what, "no clipping at the corners (4 voices, velocity 127, LEVEL 127): mix peak %.0f", peak);
             check(what, okc);
         }
+    }
+    {   /* (NO) the preset appended after all the old ones, and LANG 4 as a name */
+        char what[160], nm[8]; const char *u;
+        int32_t pi = preset_of("BURZUM NO");
+        snprintf(what, sizeof what, "BURZUM NO appended last (preset %d = npresets - 1)", pi);
+        check(what, pi == (int32_t)ENG_FORMANT.npresets - 1u);
+        host_preset(&trk[0], eng_voice(), (uint32_t)pi);
+        check("BURZUM NO picks LANG NO and LYRIC W1", trk[0].p[P_VLANG] == LG_NO && trk[0].p[P_VLYR] == 1);
+        param_format(&VLANG_DESC, LG_NO, nm, &u);
+        snprintf(what, sizeof what, "LANG 4 reads %s, one turn from JA to NO", nm);
+        check(what, !strcmp(nm, "NO") && param_turn(&VLANG_DESC, LG_JA, 1) == LG_NO);
     }
 }
 

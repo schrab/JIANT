@@ -533,6 +533,8 @@ static const preset_t FORMANT_PRESETS[] = {
      MODS(P_LWAVE, LW_SH, P_LRATE, -10, MMOD(1, PS_LFO, PD_SHP, 30), MMOD(2, PS_LFO, PD_PAN, 30))},   /* S&H 1/16 */
     {"WHISPER JA", {0, 64, 0, 3, 50, 120, 52, 0}, {40, 90, 110, 80}, 0, TAG(VOX), FX(0, 40, 30, 70), PAT(5), WORDS(LG_JA, 7),
      MODS(MMOD(1, PS_RAND, PD_PAN, 40), MMOD(2, PS_RAND, PD_REV, 30))},                  /* each word elsewhere */
+    /* (NO) a dark Norwegian singer: a low, breathy voice, a long tail, the deep reverb of the northern choirs */
+    {"BURZUM NO", {0, 32, 0, -5, 60, 70, 78, 0}, {20, 80, 110, 80}, 0, 1 | TAG(VOX), FX(0, 30, 40, 95), PAT(4), WORDS(LG_NO, 1)},
 };
 /* (V10.6i) the browsing order: to play, then the experiments, then INIT */
 static const uint8_t VOICE_ORDER[] = {0, 4, 1, 6, 2, 7, 8, 9, 10,   /* to play */

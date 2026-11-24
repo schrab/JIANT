@@ -1651,7 +1651,8 @@ function makeMockDevice(opt = {}) {
   const RATIO = [".5", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "14", "16"];
   const P = (name, e, env = [10, 70, 90, 60], mono = 0, pat = 0, xp = 0, mod = []) => ({ name, e, env, mono, pat, xp, mod });   /* mod
      (V10.6i): the preset's movement, [parameter, value] pairs (core.h preset_t.mod; tools/preset_mods_js.py) */   /* xp (0.8.5):
-     VOICE's LANG | LYRIC << 2 */
+     VOICE preset LANG (4 = NO) | LYRIC << 3 */
+
   const ENG = [
     { name: "ANALOG", titles: ["OSC", "FLT"], edit: [E("WAVE", ["SAW", "SQR", "TRI", "SIN", "PWM", "SYNC", "RING", "SAW3", "PLS3"], 0), D("DETUNE", F.INT, 0, 127, 10, null, "ct"), D("MIX", F.PCT, 0, 127, 64),
         D("NOISE", F.PCT, 0, 127, 0), D("CUT", F.CUTOFF, 0, 127, 90), D("RES", F.PCT, 0, 127, 30), D("DRIVE", F.PCT, 0, 127, 0), D("INT", F.SEMI, -24, 24, 0)],   /* (JIANT 0.4: INT, osc 2's interval, was KTR) */
@@ -1731,14 +1732,15 @@ function makeMockDevice(opt = {}) {
         P("OOH PAD", [80, 100, 50, 0, 55, 25, 55, 0], [70, 90, 115, 95], 0, 5, 0, [[10, 1], [9, 30], [14, 10], [49, 7], [50, 3], [51, 40]]),
         P("CHANT", [20, 60, 100, -12, 70, 15, 65, 10], [30, 90, 110, 80], 0, 5, 0, [[10, 4], [9, -5], [14, 18], [49, 5], [50, 5], [51, 30]]),
         P("TALK BOX", [10, 110, 40, 0, 110, 4, 85, 0], [2, 65, 95, 40], 1, 4, 0, [[38, 12], [49, 6], [50, 2], [51, -40]]),
-        P("CANTOR ES", [0, 64, 0, 0, 80, 6, 72, 0], [24, 70, 112, 72], 1, 4, 5, [[49, 7], [50, 3], [51, 30]]),
-        P("CANTORA ES", [0, 0, 0, 4, 70, 10, 74, 0], [26, 70, 112, 72], 1, 4, 9, [[49, 6], [50, 17], [51, 40]]),
-        P("SINGER EN", [0, 64, 0, 0, 84, 6, 72, 0], [24, 70, 112, 72], 1, 4, 14, [[49, 7], [50, 3], [51, 30]]),
-        P("UTA JA", [0, 48, 0, 5, 76, 8, 74, 0], [24, 70, 112, 70], 1, 4, 19, [[49, 6], [50, 18], [51, 40]]),
-        P("WORD CHOIR", [0, 64, 16, 0, 45, 20, 62, 0], [60, 90, 115, 85], 0, 5, 21, [[49, 5], [50, 5], [51, 40]]),
-        P("SCAT EN", [0, 64, 0, 0, 96, 4, 76, 0], [16, 60, 100, 60], 1, 4, 70, [[49, 5], [50, 3], [51, 20]]),
-        P("ROBOT EN", [0, 64, 0, -3, 127, 0, 90, 0], [2, 65, 120, 56], 1, 4, 26, [[10, 4], [9, -10], [49, 1], [50, 3], [51, 30], [52, 1], [53, 5], [54, 30]]),
-        P("WHISPER JA", [0, 64, 0, 3, 50, 120, 52, 0], [40, 90, 110, 80], 0, 5, 31, [[49, 5], [50, 5], [51, 40], [52, 5], [53, 9], [54, 30]])] },
+        P("CANTOR ES", [0, 64, 0, 0, 80, 6, 72, 0], [24, 70, 112, 72], 1, 4, 9, [[49, 7], [50, 3], [51, 30]]),
+        P("CANTORA ES", [0, 0, 0, 4, 70, 10, 74, 0], [26, 70, 112, 72], 1, 4, 17, [[49, 6], [50, 17], [51, 40]]),
+        P("SINGER EN", [0, 64, 0, 0, 84, 6, 72, 0], [24, 70, 112, 72], 1, 4, 26, [[49, 7], [50, 3], [51, 30]]),
+        P("UTA JA", [0, 48, 0, 5, 76, 8, 74, 0], [24, 70, 112, 70], 1, 4, 35, [[49, 6], [50, 18], [51, 40]]),
+        P("WORD CHOIR", [0, 64, 16, 0, 45, 20, 62, 0], [60, 90, 115, 85], 0, 5, 41, [[49, 5], [50, 5], [51, 40]]),
+        P("SCAT EN", [0, 64, 0, 0, 96, 4, 76, 0], [16, 60, 100, 60], 1, 4, 138, [[49, 5], [50, 3], [51, 20]]),
+        P("ROBOT EN", [0, 64, 0, -3, 127, 0, 90, 0], [2, 65, 120, 56], 1, 4, 50, [[10, 4], [9, -10], [49, 1], [50, 3], [51, 30], [52, 1], [53, 5], [54, 30]]),
+        P("WHISPER JA", [0, 64, 0, 3, 50, 120, 52, 0], [40, 90, 110, 80], 0, 5, 59, [[49, 5], [50, 5], [51, 40], [52, 5], [53, 9], [54, 30]]),
+        P("BURZUM NO", [0, 32, 0, -5, 60, 70, 78, 0], [20, 80, 110, 80], 1, 4, 12, [])] },
     /* 6: reserved (TRIO, folded into ANALOG in JIANT 0.4: its sounds load as ANALOG's SYNC / RING / SAW3, core.h analog_from_trio) */
     { name: "-", titles: ["-", "-"], edit: [D("-", F.INT, 0, 127, 0), D("-", F.INT, 0, 127, 0), D("-", F.INT, 0, 127, 0),
         D("-", F.INT, 0, 127, 0), D("-", F.INT, 0, 127, 0), D("-", F.INT, 0, 127, 0), D("-", F.INT, 0, 127, 0), D("-", F.INT, 0, 127, 0)],
@@ -1980,7 +1982,7 @@ function makeMockDevice(opt = {}) {
     st.preset = pi;
     for (let i = 0; i < 8; i++) st.p[P_E0 + i] = pr.e[i];
     [1, 2, 3, 4].forEach((id, k) => { st.p[id] = pr.env[k]; });
-    if (e.name === "VOICE") { st.p[61] = (pr.xp || 0) & 3; st.p[74] = (pr.xp || 0) >> 2; }   /* (0.8.5) LANG, LYRIC (P_VLANG
+    if (e.name === "VOICE") { const l = (pr.xp || 0) & 7; st.p[61] = l === 4 ? 10 : l; st.p[74] = (pr.xp || 0) >> 3; }   /* (NO) LANG 4/NO, LYRIC (P_VLANG
                                                      = P_FM1_ATK 61, P_VLYR = P_FM3_REL 74; ui.c apply_preset_to) */
     st.p[37] = pr.mono ? 2 : 0;
     st.p[33] = 0; st.p[34] = 24; st.p[35] = 28; st.p[36] = 36;
@@ -3281,13 +3283,14 @@ $("lyricsend").addEventListener("click", () => {
   });
 });
 /* LANG (P_VLANG, id 61) and LYRIC (P_VLYR, id 74): VOICE's words, in other engines' slots (sing.c) */
-const LYR_LANG = ["OFF", "ES", "EN", "JA", "RU", "DE", "FR", "ZH", "PT", "GN"];
+const LYR_LANG = ["OFF", "ES", "EN", "JA", "RU", "DE", "FR", "ZH", "PT", "GN", "NO"];
 const LYR_SRC = ["TEXT", ...Array.from({ length: 16 }, (_, i) => `W${i + 1}`), ...Array.from({ length: 8 }, (_, i) => `S${i + 1}`), "TEXT FIXED"];
 function lyricPreview() {
   try { const text=lyricText($("lyric").value,LYR_LANG[+$("lyrlang").value]); $("lyric-preview").textContent=`${text.length}/63 · ${text}`; }
   catch(e) { $("lyric-preview").textContent=e.message; }
 }
 $("lyric").addEventListener("input",lyricPreview);
+
 const LYR_ID = { lang: 61, src: 74 };
 for (const [id, names, key] of [["lyrlang", LYR_LANG, "lang"], ["lyrsrc", LYR_SRC, "src"]]) {
   $(id).replaceChildren(...names.map((n, i) => el("option", { value: i, text: n })));
@@ -3306,8 +3309,9 @@ function updateBrowser() {
       const max=dev.pdesc[param]?.max;
       if (Number.isInteger(max)) for (const option of $(id).options) option.disabled=+option.value>max;
     }
-    if (document.activeElement !== $("lyrlang")) $("lyrlang").value = String(Math.max(0, Math.min(9, dev.dump.p[LYR_ID.lang] | 0)));
+    if (document.activeElement !== $("lyrlang")) $("lyrlang").value = String(Math.max(0, Math.min(10, dev.dump.p[LYR_ID.lang] | 0)));
     if (document.activeElement !== $("lyrsrc")) $("lyrsrc").value = String(Math.max(0, Math.min(25, dev.dump.p[LYR_ID.src] | 0)));
+
   }
   renderTrackbar();
   if (document.activeElement !== sel) sel.value = String(e);

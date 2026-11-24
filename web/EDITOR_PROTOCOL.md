@@ -1132,7 +1132,7 @@ names them per engine):
 
 | id | label | values |
 | --- | --- | --- |
-| 61 | LANG | (`P_VLANG`, LOFI's RTRG slot) 0 OFF (VOICE as before, its vowels: bit for bit), 1 ES, 2 EN, 3 JA |
+| 61 | LANG | (`P_VLANG`, LOFI's RTRG slot) 0 OFF (VOICE as before, its vowels: bit for bit), 1 ES, 2 EN, 3 JA, 4 NO |
 | 74 | LYRIC | (`P_VLYR`, DRUM's IMAGE slot) 0 TEXT (the track's lyric, below; empty: W1), 1..16 W1..W16 (words the dice puts together from the language's bank, a seed each), 17..24 S1..S8 (scat) |
 
 With LANG on, the device relabels VOICE's EDIT values (`DESC` sends the engine's own, VOWEL ..): E1 POS (0 AUTO: each
@@ -1140,8 +1140,8 @@ note the next syllable; 1..127: that syllable of the lyric at the next note, as 
 it), E2 THEME (0..127 in eight: LOVE NIGHT SEA SKY ANY ROAD DREAM FIRE; 64 ANY), E3 ARTIC (stored the other way: 0 =
 100 %, crisp consonants; 127 = 0 %, slurred), E4 SHIFT, E5 BUZZ, E6 BREATH, E7 Q as before, E8 LOOP (0..127 in five:
 FREE, 1, 2, 4, 8 pattern loops: the lyric from its start every so many loops of the pattern). A factory preset sets
-LANG and LYRIC (the word presets CANTOR ES .. WHISPER JA; every other preset 0, 0); user presets and projects store
-them with the sound.
+LANG and LYRIC (the word presets CANTOR ES .. BURZUM NO; every other preset 0, 0). A factory preset packs them as
+`xp = LANG | LYRIC << 3`; user presets and projects store them as separate bytes, with the same format as before.
 
 INFO advertises `59 01 63` (the last tag): LYRIC, a track's lyric of at most 63 bytes. Firmware without the tag answers
 nothing to 39.
@@ -1153,8 +1153,9 @@ nothing to 39.
 The lyric: printable ASCII (a byte outside 32..126 becomes a space), case ignored; words are letters (an apostrophe and
 "_" join: "mi_amor" sings as one word, two syllables), a "-" alone holds the vowel one more note (a melisma), anything
 else separates. Spanish is read by rules (the enye written "ny"), Japanese as romaji (Hepburn or kunrei), English
-through the device's dictionary (~2100 words; a word it lacks by rough letter rules). The editor turns accented letters
-into plain ones (stress is not marked in singing) and ñ into "ny" before sending. A set takes effect at once (RAM: no
+through the device's dictionary (~2100 words; a word it lacks by rough letter rules), Norwegian by rules
+(ASCII respelling: *ae*, *oe*, *aa* for æ, ø, å; *dh*, *th*, *kj*, *sj*, *skj*, *rs*; doubled consonants one sound).
+The editor turns accented letters into plain ones (stress is not marked in singing) and ñ into "ny" before sending. A set takes effect at once (RAM: no
 flash write, also while playing): the track's lyric starts over at its next note. Saved with the project (FUNC's
 `L` `Y` block per track that has one; a project without it loads with none) and in the backup's runtime object (id 0).
 

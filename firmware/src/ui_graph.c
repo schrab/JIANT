@@ -217,6 +217,7 @@ static void graph_sing(const track_t *t)
     char b[64];
     if (!lang) {
         cv_text_in(PANEL_X0, 44, PANEL_W, &AF_X, "LANG OFF", T_MID, bg);
+
         return;
     }
     str_cpy(b, N_LANG[lang], sizeof b);

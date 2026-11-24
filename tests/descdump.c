@@ -100,8 +100,9 @@ int main(void)
                 v[i] = p->env[i];
             printf(",\"env\":");
             js_ints(v, 4);
-            printf(",\"xp\":%u", (unsigned)p->xp);   /* (0.8.5) VOICE: LANG | LYRIC << 2 */
+            printf(",\"xp\":%u", (unsigned)p->xp);   /* (NO) VOICE preset LANG (4 = NO) | LYRIC << 3 */
             printf(",\"mono\":%d,\"pat\":%d}", p->mono & 1, p->pat);
+
         }
         printf("]}");
     }

@@ -767,12 +767,23 @@ before loads as it was. PROGRAM CHANGE keeps 0.9.8's numbers (see [14](#14-midi-
   page draws one cycle of the morphed wave and says which two waves it blends. KNOB 2 is **DRIFT** (0–100 %, 0 = off):
   each voice's pitch (up to about ±27 cents) and filter wander slowly, each in its own way, as old analog oscillators
   do. A chord comes alive; at high values it goes seasick.
-- **VOICE**: a formant voice (after klattsch): vowels, talk, breath. Since 0.8.5 it also sings words and lyrics in
-  Spanish, English and Japanese: see [VOICE: words and lyrics](#voice-words-and-lyrics-085).
-- **WHEEL**: a drawbar organ: registrations (REG), percussion (PERC: OFF, 2ND, 3RD, 2SOFT, 3SOFT, 2SLOW, 3SLOW),
-  key click, drive, SPEED (the rotor's: OFF, SLOW, FAST). EDIT > **ROTOR** (WHEEL only): **DEPTH** (how much the rotary speaker
-  swirls: 100 % as before, 0 % a still speaker) and **DUST** (0–100 %: an old organ's crackle and hiss while it plays).
-- **NOISE**: coloured and metallic noise. MODE: ANLG, DUST, LFSR, META (DUST is only the crackle: at DENS 0 it still crackles softly). PEAK is its own resonance.
+- **VOICE**: a formant voice (after klattsch): vowels, talk, breath. Its pages: VOWELS (VOWEL, VOWEL2, TALK, SHIFT) and SOURCE (BUZZ, BREATH, RESO, RAND). Since 0.8.5 it also sings words and lyrics (LANG: OFF, ES, EN, JA, RU, DE, FR, ZH, PT, GN, NO): see [VOICE: words and lyrics](#voice-words-and-lyrics-085).
+- **WHEEL**: a drawbar organ. DRAWBARS: **BARS** (sixteen registrations), SUB, BODY, TOP. COLOR: **PERC** (OFF, 2ND,
+  3RD, 2SOFT, 3SOFT, 2SLOW, 3SLOW), CLICK (the key click), **GAIN** (0–12 dB; the DRIVE it replaced there is on FOCUS)
+  and **SPEED**, the rotor's (OFF, SLOW, FAST). EDIT › **MORE** (ROTOR until V10.7.60): **DEPTH** (how much the rotary
+  speaker swirls: 100 % as before, 0 % a still speaker) and **DUST** (0–100 %: an old organ's crackle and hiss while it
+  plays).
+- **WEST** (V10.7.37, in NOISE's place): west-coast synthesis. A complex oscillator (a sine core, or a triangle with
+  the RATIOs ending in **T**) phase-modulated by a second oscillator (**MOD** its depth, **RATIO** its ratio to the
+  note: 0.5 … 8), into a wavefolder (**FOLD** how far it folds, **SKEW** asymmetric folds: even harmonics) and then a
+  low-pass gate (**GATE**: 0 a low-pass alone, 64 both, 127 a level alone; **DECAY** how long the strike takes to die
+  away, and past 80 a held note sustains; **RES** the gate's resonance). Every note is a strike: a pluck, a bongo, a
+  bell.
+  **DUST** (V10.8.28): **0** none; **1–95** white noise into the folder with the core, so it folds and passes the gate
+  with it (fused into the timbre), and from 48 on some of it straight to the gate too (air); **96–127** is **METAL**:
+  instead of the noise, a metallic tone tuned to the note (the earlier NOISE engine's META registers) into the folder
+  with the core at half. A project or a user preset made with NOISE opens as WEST in a DUST sound.
+
 - **DRUM**: DRUM-X, see [5](#5-drum-x).
 - **ANIMAL**: animal calls from physical models, see [ANIMAL](#animal-083) below.
 
@@ -839,10 +850,10 @@ engine's CPU with eight voices (GLOTT; CMOS, PULSE, WHSTL and WING about half): 
 
 ### VOICE: words and lyrics (0.8.5)
 
-VOICE sings: syllables, words and whole lyrics, in **Spanish**, **English** and **Japanese**. Turn it on with
-EDIT > **WORDS** > **LANG** (OFF, ES, EN, JA), or pick a word preset: **CANTOR ES**, **CANTORA ES**, **SINGER EN**,
-**UTA JA**, **WORD CHOIR**, **SCAT EN**, **ROBOT EN**, **WHISPER JA**. LANG OFF is the VOICE you know (its vowels),
-note for note as before.
+VOICE sings: syllables, words and whole lyrics, in **Spanish**, **English**, **Japanese** and **Norwegian**. Turn it on
+with EDIT > **WORDS** > **LANG** (OFF, ES, EN, JA, NO), or pick a word preset: **CANTOR ES**, **CANTORA ES**,
+**SINGER EN**, **UTA JA**, **WORD CHOIR**, **SCAT EN**, **ROBOT EN**, **WHISPER JA**, **BURZUM NO**. LANG OFF is the
+VOICE you know (its vowels), note for note as before.
 
 **How it sings.** Every note sings the next syllable of the lyric. Hold the note and the vowel holds; a TIE holds it
 on; at the release the syllable's last consonants sound (the *s* of "es", the *n* of "sun"). Legato notes glide from
@@ -888,6 +899,9 @@ accents and ñ into what the device reads). Each track has its own lyric, saved 
   *arigatou* 5 (a long *ou* sung o-o); a doubled consonant (*kitto*) is a short stop, not a note.
 - **English** comes from a dictionary of ~2100 common words (from the CMU Pronouncing Dictionary) with their
   syllables; a word it lacks is read by rough letter rules, which work less well.
+- **Norwegian** is read by rules: write it in ASCII — **AE**, **OE**, **AA** for *æ*, *ø*, *å*, and **DH**, **TH**,
+  **KJ**, **SJ**, **SKJ**, **RS** for those sounds; the diphthongs *ei*, *au*, *oej* glide, **Y** is the rounded *y*,
+  and a doubled consonant is one sound.
 - A **-** on its own holds the vowel one more note (a melisma: *A - MOR* is a, a, mor). **_** joins two words into one
   (*MI_AMOR*: mia-mor, the Spanish *sinalefa*). Punctuation and digits only separate words.
 
@@ -898,7 +912,7 @@ formants (F1 down, F2 across: where the tongue is), with the voicing and noise l
 **What to expect.** This is formant synthesis, like a vintage speech chip that sings: vowels, *s sh f*, *t k p*, *ch*,
 *m n l* and the glides come through in context; *b d g*, *v z* and the English *r* are approximations, and
 intelligibility drops at very short notes (a syllable's consonants take 40–100 ms before its vowel). Spanish and
-Japanese read best (their spelling is regular); English depends on the dictionary.
+Japanese and Norwegian read best (their spelling is regular); English depends on the dictionary.
 
 **Cost.** No state per voice (the articulation is the track's); ~1 KB of RAM for the six lyrics and singers; ~42 KB
 of flash (the English dictionary is most of it); about +9 % CPU over VOICE's vowels, so four voices singing still cost

@@ -1585,8 +1585,9 @@ static void apply_preset_to(track_t *t, uint32_t pi)
     if (e == &ENG_LOFI || e == &ENG_DRUM)             /* (V10.6d) MATH: RTRG on, each note the formula from its start */
         t->p[P_LRTRG] = e == &ENG_DRUM ? km : 1;
     if (e == &ENG_FORMANT) {                          /* (0.8.5) VOICE's words: LANG, LYRIC (0: its vowels) */
-        t->p[P_VLANG] = (int16_t)(e->presets[pi].xp & 3u);
-        t->p[P_VLYR] = (int16_t)(e->presets[pi].xp >> 2);
+        uint32_t xl = e->presets[pi].xp & 7u;
+        t->p[P_VLANG] = (int16_t)(xl == 4u ? LG_NO : xl);
+        t->p[P_VLYR] = (int16_t)(e->presets[pi].xp >> 3);
         t->p[P_VCONS] = 127;                            /* (V10.6y) CONS 100 % (a DRUM part's lane level before) */
     } else if (e->presets[pi].xp) {                   /* (V10.36) BREATHE: the LFO DRIFT, slow, on the filter */
         uint32_t x = e->presets[pi].xp;
@@ -1594,6 +1595,7 @@ static void apply_preset_to(track_t *t, uint32_t pi)
         t->p[P_LRATE] = (int16_t)(x & 0x80u ? -14 : -1);
         t->p[P_LD_FLT] = (int16_t)(x & 63u);
         t->p[P_LD_PIT] = (int16_t)(x >> 6 & 1u);
+
     }
     {   /* the sends */
         static const uint8_t FX_DEF[4] = {0, 24, 28, 36};
