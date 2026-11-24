@@ -20,6 +20,9 @@ static void lcd_power(uint32_t s) { (void)s; }
 static void lcd_wake_now(void) {}
 static void lcd_blit(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const uint16_t *p)
 { (void)x; (void)y; (void)w; (void)h; (void)p; }
+static void lcd_fill(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint16_t c)
+{ (void)x; (void)y; (void)w; (void)h; (void)c; }   /* gfx.c scr_out: a no-op in this host harness */
+static void live_return(uint32_t m) { (void)m; }    /* ui_live.c, not linked in this host harness */
 #define FELUCCA_FLASH 1
 #include "../firmware/src/gfx.c"
 #include "../firmware/src/panel.c"
