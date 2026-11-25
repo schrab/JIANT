@@ -83,7 +83,8 @@ static void list_put(uint32_t v)
 #define PREF_LATCH 1u                          /* MENU > FX LATCH ON (#40); JIANT 0.6.44: ON once for everyone (prefs_rev);
                                                 * 0.6.64: OFF again (the FX screen locks open by itself) */
 #define prefs_rev (favorites.factory[15][25])  /* (JIANT 0.6.44) the settings' revision (a byte no engine uses: engine 15):
-                                                * 0 before; 1: FX LATCH turned ON once (main.c prefs_update); 2: OFF once (0.6.64) */
+                                                * 0 before; 1: FX LATCH turned ON once (main.c prefs_update); 2: OFF once (0.6.64);
+                                                * 3: STRING's stars on engine 8 cleared once (favorites.c) */
 #define PREF_ANIM_OFF 2u                       /* MENU > ANIM OFF (#46): values snap (no rolling digits, no glide) */
 /* (0.6.57) values snap: MENU > ANIM OFF, or LOAD LITE / ECO (the rolling digits, the roll's and the tabs' glides are
  * frames drawn again for a look: the time goes to the keys and knobs instead; the beings still move) */
@@ -118,6 +119,10 @@ static void prefs_update(void)
         prefs_rev = 2u;
         settings_save();
     }
+#if !FELUCCA_HOST_POWER
+    if (prefs_rev < 3u)                                /* STRING's stars (favorites.c fav_rows_new) */
+        fav_rows_new();
+#endif
 }
 /* MENU > AUDIO CLICK, CLICK LEVEL, COUNT-IN (1.1, Discussion #131; click.c, seq.c): two bits each in another byte no
  * engine uses, saved with the settings: bits 0-1 CLICK (OFF REC ON), 2-3 CLICK LEVEL (stored 0 MID, 1 LOW, 2 HIGH),

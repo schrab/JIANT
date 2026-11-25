@@ -210,7 +210,12 @@ static const uint8_t MIDI_CC_MAP[][2] = {
 static const uint8_t MIDI_CC_ENG[NENGINES] = {
     0x56, 0x00, 0x30, 0x80, 0x50, 0x07, 0x67, 0x00,   /* ANALOG CUT RES, -, PHASE DCW, LOFI TONE, SAMPLE CUT, VOICE Q,
                                                        * TRIO CUT RES, WHEEL - */
-    0x80, 0x30, 0x30, 0x34, 0x30,                     /* GRAIN TONE, PHYS BRIT, DRUM TONE, NOISE FREQ RES, FM6 MLVL */
+#if FELUCCA_HOST_POWER
+    0x80,                                             /* (ports/) GRAIN TONE */
+#else
+    0x32,                                             /* STRING BRIGHT DECAY */
+#endif
+    0x30, 0x30, 0x34, 0x30,                     /* PHYS BRIT, DRUM TONE, NOISE FREQ RES, FM6 MLVL */
     0x80,                                             /* SLICE TONE (retired: ANALOG's played) */
     0x23,                                             /* ANIMAL PRESS (TOUCH CLICK BUZZ MOUTH), CHAOS (COUPLE Q DRIFT ROUGH) */
 };

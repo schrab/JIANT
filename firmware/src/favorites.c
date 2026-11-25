@@ -7,6 +7,17 @@ typedef struct {
     uint32_t user, filter;
 } favorites_t;
 static favorites_t favorites;
+#if !FELUCCA_HOST_POWER
+static void settings_save(void);                       /* project.c */
+/* GRAIN's stars (engine 8, retired) cleared once: the number holds STRING now (ui.c prefs_update: prefs_rev 3) */
+static __attribute__((noinline)) void fav_rows_new(void)
+{
+    memset(favorites.factory[8], 0, sizeof favorites.factory[8]);   /* engine 8 = ENGI_STRING (core.h): settings_test.c
+                                                                     * includes this file without core.h */
+    favorites.factory[15][25] = 3u;
+    settings_save();
+}
+#endif
 static int favorite_has(uint32_t engine, uint32_t preset)
 {
     if (engine == NENGINES)

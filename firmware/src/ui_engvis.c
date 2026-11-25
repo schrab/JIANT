@@ -2102,6 +2102,68 @@ static VX_CODE void vx_lofi(const track_t *t, const int32_t *A, int32_t en_home)
     vxs.kc = 0;
 }
 
+#if !FELUCCA_HOST_POWER
+/* STRING keeps its time, level and newest note in vxs's slot of PHASE (7): one creature is drawn at a time (EDIT's,
+ * HOME's), so a slot shared costs a glance at most when the track changes, and no byte of the pool (at its floor) */
+#define VX_K_STRING 7u
+/* ----------------------------------------------------------------------------------------------- STRING --- */
+/* TEJEDORA: a spider on its web, one thread a voice sounding, each thread the string itself */
+static VX_CODE void vx_string(const track_t *t, const int32_t *A, int32_t en_home)
+{
+    const int16_t *p = t->p;
+    vxf_t f = vx_uf(A, 100, 0);
+    int32_t en = vx_level(t, VX_K_STRING, en_home), silk = 40 + p[P_E2] / 3, sx, sy, k, j, nth = 0, q[2 * 17], bow = 0;
+    uint32_t age = vx_age(t, VX_K_STRING, 0), mt = vxs.mt[VX_K_STRING], i;
+    vxs.kc = 1;
+    for (k = -1; k <= 1; k += 2)                         /* the two twigs the web hangs from */
+        vx_line(&f, k * 58 * 16, -42 * 16, k * 55 * 16, 34 * 16, 64 + en / 6);
+    for (i = 0; i < NVOICE; i++) {                       /* a thread a voice sounding: its line, one period */
+        const voice_t *v = &t->v[i];
+        const int16_t *b = str_line(t, v);
+        uint32_t d, n = str_period(pitch_inc((uint32_t)clamp(v->pitch_cur, 0, 2047)), &d) >> 8, w = v->ph[1] % ST_SL;
+        int32_t y = (-30 + nth * 9) * 16, pk = 0;
+        if (!v->active || nth >= 7) continue;
+        if (n < 2u) n = 2u;
+        for (j = 0; j <= 16; j++) {                      /* (17 points: vx_curve's o[] holds 16 arcs at most) */
+            int32_t a = b[(w + ST_SL - n + (uint32_t)j * n / 17u) % ST_SL];
+            pk = a > pk ? a : -a > pk ? -a : pk;
+            q[2 * j] = (-55 + j * 110 / 16) * 16;
+            q[2 * j + 1] = y + ((j && j < 16 ? a : 0) * 5 >> 10);
+        }
+        vx_curve(&f, q, 17, 0, silk + (pk >> 8) + en / 4);
+        if (v->gate && p[P_E7]) bow = 1;
+        nth++;
+    }
+    for (; nth < 3; nth++)                               /* (at rest: the web's empty threads, still) */
+        vx_line(&f, -55 * 16, (-30 + nth * 9) * 16, 55 * 16, (-30 + nth * 9) * 16, 36);
+    for (k = -2; k <= 2; k++)                            /* the web's spokes */
+        vx_line(&f, k * 8 * 16, -38 * 16, k * 22 * 16, 26 * 16, 28 + en / 10);
+    {   /* the cocoon under it: SIZE its size, BODY its glow */
+        int32_t rx = (9 + p[P_E6] / 9) * 16, ry = (5 + p[P_E6] / 14) * 16, g = 40 + (p[P_E5] * (64 + en) >> 7);
+        vx_ring(&f, 0, 30 * 16, rx, ry, g);
+        vx_ring(&f, 0, 30 * 16, rx * 2 / 3, ry * 2 / 3, g - 20);
+        vx_line(&f, 0, -30 * 16, 0, 30 * 16 - ry, 30);
+    }
+    sx = (-50 + p[P_E3] * 50 / 127) * 16;                /* the spider at POS on the top thread */
+    sy = -36 * 16;
+    {
+        int32_t pl = age < 160u ? (int32_t)(160u - age) * 256 / 160 : 0, saw = bow ? (og_sin(vx_ang(mt, 900)) * 5 >> 15) * 16 : 0;
+        int32_t h = 120 + en / 3;
+        vx_ring(&f, sx - 4 * 16, sy, 5 * 16, 4 * 16, h);  /* the abdomen */
+        vx_ring(&f, sx + 3 * 16, sy + 8, 3 * 16, 3 * 16, h + 20);   /* the head */
+        for (k = 0; k < 8; k++) {                        /* eight legs, four a side, each a knee up and a foot down; the
+                                                         * front right one plucks (or saws while BOW feeds it) */
+            int32_t side = k < 4 ? -1 : 1, j4 = k & 3, kx = sx + side * (3 + j4) * 16 - 2 * 16;
+            int32_t ky = sy - (7 + (j4 == 1 || j4 == 2) * 2) * 16, fx = sx + side * (9 + j4 * 2) * 16 - 2 * 16, fy = sy + (4 + j4) * 16;
+            if (k == 4) { kx += saw; fx += saw; fy -= pl * 7 * 16 >> 8; }
+            vx_line(&f, sx + side * 2 * 16 - 2 * 16, sy, kx, ky, h - 10);
+            vx_line(&f, kx, ky, fx, fy, h - 25);
+        }
+        vx_face(&f, sx + 3 * 16, sy + 4, 14, 10, age < 90u, sy + 28, 8, pl > 64 ? 14 : 0, 12, 243, 218, 154);
+    }
+    vxs.kc = 0;
+}
+#endif
 #if FELUCCA_HOST_POWER
 #include "ui_smpvis.c"           /* (ports/) SAMPLE's and GRAIN's picture */
 #endif
@@ -2137,6 +2199,10 @@ static int vx_draw(const track_t *t, int32_t x, int32_t y, int32_t w, int32_t h,
         vx_phase(t, A, en_home);
     else if (e == &ENG_LOFI)
         vx_lofi(t, A, en_home);
+#if !FELUCCA_HOST_POWER
+    else if (e == &ENG_STRING)                          /* (TEJEDORA, on PHASE's state slot) */
+        vx_string(t, A, en_home);
+#endif
 #if FELUCCA_HOST_POWER
     else if (e == &ENG_SAMPLE || e == &ENG_GRAIN)       /* (ports/) the slot's waveform, its region, the playheads */
         vx_smp(t, A);

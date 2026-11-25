@@ -35,7 +35,7 @@ SIZE_FILES = ["ui.c", "favorites.c", "menu_items.c", "cpu_safe.c", "icons.c", "u
               "pfx.c", "master.c", "audio.c", "mod.c", "fx.c", "drumx_voice.c", "eng_drum.c", "eng_fm6.c",
               # (0.9.15) for their event code below (what runs every sample or block there stays -Os)
               "perform.c", "voice.c", "song_play.c", "eng_wheel.c", "eng_formant.c", "eng_animal.c", "slicer.c",
-              "eng_analog.c", "eng_lofi.c", "eng_noise.c", "eng_phase.c", "fugue.c", "../hal/fm1_input.h"]
+              "eng_analog.c", "eng_lofi.c", "eng_noise.c", "eng_phase.c", "eng_string.c", "fugue.c", "../hal/fm1_input.h"]
 # (0.9.14) of what an interrupt reaches, the code that runs once an event (a USB control transfer, a MIDI message, a
 # step, a note, a recorded key), not once a sample or a block: built for size as the main loop is (1.9 KB, the room
 # PROFILE needed in the slot). By prefix; EVENT_KEEP the ones among them that do run every block
@@ -47,7 +47,7 @@ EVENT_PFX = ("ep0_", "e0_", "ep1_", "ep3_", "sysex_", "midi_", "um_", "uart_midi
              # (0.9.15) a note (its voice found, started, ended), a key, a section or song row in, the FX layer's buffer
              # effect started or switched (a 1/16 at most), a fault: not a sample's or a block's work
              "trk_note_on", "trk_note_off", "voice_start", "voice_victim", "voice_room", "mono_play", "input_on",
-             "input_off", "wheel_note_on", "formant_note_on", "animal_init", "drum_oct_note", "sec_apply", "chain_apply",
+             "input_off", "wheel_note_on", "formant_note_on", "animal_init", "string_note_on", "drum_oct_note", "sec_apply", "chain_apply",
              "srec_finish", "scene_capture", "fx_trip", "rev_state_clear", "sl_enter", "perf_buf_start", "perf_buf_select",
              "perf_buf_done", "perf_glt_step", "perf_switch", "perf_press", "perf_hush_end", "pfx_resync", "pfx_note",
              "pfx_hush", "pfx_lane_", "strn_note", "scale_steps", "cg_near", "dxo_part", "trk_nvoice", "lofi_note_on",

@@ -857,7 +857,8 @@ int main(void)
         bad += check("FUN4 with a SAMPLE PERC track: DRUM's kit, the same", ok);
 #undef PERC_OK
     }
-    {   /* (JIANT) GRAIN (8) and SLICE (13) tracks, retired: ANALOG's first preset, their engine motion gone, the rest kept */
+    {   /* (JIANT) SAMPLE (4) and SLICE (13) tracks, retired: ANALOG's first preset, their engine motion gone, the rest kept
+         * (GRAIN's 8 holds STRING now) */
         static project_t g, h;
         static project_store_t gs;
         memset(&g, 0, sizeof g);
@@ -868,16 +869,16 @@ int main(void)
             memcpy(g.fm6[t], FM6_INIT, FM6_PACKED);
             memcpy(g.dx, DX_KIT_DEF, sizeof g.dx);
         }
-        g.t[1].engine = ENGI_GRAIN; g.t[2].engine = ENGI_SLICE; g.t[2].p[P_LEVEL] = 66;
+        g.t[1].engine = ENGI_SAMPLE; g.t[2].engine = ENGI_SLICE; g.t[2].p[P_LEVEL] = 66;
         g.motion.count = 2; g.motion.on = 4;
         g.motion.event[0] = (motion_event_t){2u << 6 | 1u, P_E2, 30};
         g.motion.event[1] = (motion_event_t){2u << 6 | 2u, P_REV, 40};
         g.sum = proj_sum(&g);
         ok = proj_pack_vb(&gs, &g) && proj_import(&h, &gs, sizeof gs) && h.t[1].engine == ENGI_PHYS_TO &&
              h.t[2].engine == ENGI_PHYS_TO && h.t[2].p[P_LEVEL] == 66 && h.motion.count == 1u && h.motion.event[0].param == P_REV &&
-             h.t[2].p[P_E0] == ENGINES[ENGI_PHYS_TO]->presets[0].e[0] && !eng_ok(ENGI_GRAIN) && !eng_ok(ENGI_SLICE) &&
-             !eng_ok(ENGI_SAMPLE) && eng_live(ENGI_SLICE) == ENGI_PHYS_TO;
-        bad += check("JIANT: GRAIN and SLICE tracks (retired) load as ANALOG, their engine motion gone, LEVEL and sends kept", ok);
+             h.t[2].p[P_E0] == ENGINES[ENGI_PHYS_TO]->presets[0].e[0] && eng_ok(ENGI_STRING) && !eng_ok(ENGI_SLICE) &&
+             !eng_ok(ENGI_SAMPLE) && eng_live(ENGI_SAMPLE) == ENGI_PHYS_TO;
+        bad += check("JIANT: SAMPLE and SLICE tracks (retired) load as ANALOG, STRING is back on 8, the rest kept", ok);
     }
     {   /* (JIANT 0.6) FUNC: six tracks in FUNB's 3840 bytes, only the steps that are not empty stored */
         static project_t f, g, h;

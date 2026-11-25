@@ -29,9 +29,9 @@
 #endif
 #define NENGINES 15              /* the stores' engine numbers 0..14 (engines.c ENGINES[], append-only; 0.8.3: 14 ANIMAL) */
 #define ENGI_DIGITAL 1u          /* reserved without FELUCCA_FM4: never selectable (eng_ok), its sounds load as FM6 */
-#define NENG_SHOWN (NENGINES - !FELUCCA_FM4 - 5 + 2 * !!FELUCCA_HOST_POWER)   /* (ports/: SAMPLE, GRAIN too) */   /* the engines one can pick: PRESETS, the EDIT layer, the editor,
+#define NENG_SHOWN (NENGINES - !FELUCCA_FM4 - 4 + 2 * !!FELUCCA_HOST_POWER)   /* (ports/: SAMPLE, GRAIN too) */   /* the engines one can pick: PRESETS, the EDIT layer, the editor,
                                                 * in the display order of engines.c ENGINE_ORDER (PHYS 9, and in
-                                                * JIANT SAMPLE 4, GRAIN 8, SLICE 13: retired) */
+                                                * JIANT SAMPLE 4, GRAIN 8, SLICE 13: retired; STRING takes GRAIN's 8) */
 /* (JIANT 0.6.71) the second core (hal/fm1_multicore.h; fx.c mix_block hands it some synth tracks). MC_CPU(): the core
  * running this, for the scratch each core has its own of (fx.c part_buf and the mix, mod.c's matrix, fm6_core.c's
  * buses, voice.c's filter flags). The host (tests): no second core; mc_host runs its jobs at once, as core 1 */
@@ -221,6 +221,7 @@ static void params_by_count(int16_t *out, const int16_t *in, uint32_t np, const 
 #define ENGI_WHEEL 7u
 #define ENGI_NOISE 11u
 #define ENGI_TRIO 6u             /* (JIANT 0.4) folded into ANALOG (analog_from_trio) */
+#define ENGI_STRING 8u           /* (Karplus-Strong, eng_string.c) GRAIN's number, retired in the flash build */
 /* (JIANT) the retired engines: PHYS, and the sample engines SAMPLE GRAIN SLICE (their 123 KB of samples and GRAIN's
  * 27 KB of RAM went to DRUM-X and the effects). Their numbers stay reserved (engines.c ENG_GONE), never offered; a sound
  * of theirs that arrives -- a project, a user preset, the editor -- plays as ANALOG's first preset (SAMPLE's old PERC
@@ -230,7 +231,7 @@ static inline int eng_gone(uint32_t e)
 #if FELUCCA_HOST_POWER                   /* (ports/) SAMPLE and GRAIN again, on the samples of smp_slots.c */
     return e == ENGI_PHYS || e == ENGI_SLICE || e == ENGI_TRIO;
 #else
-    return e == ENGI_PHYS || e == ENGI_SAMPLE || e == ENGI_GRAIN || e == ENGI_SLICE || e == ENGI_TRIO;
+    return e == ENGI_PHYS || e == ENGI_SAMPLE || e == ENGI_SLICE || e == ENGI_TRIO;   /* GRAIN's 8: STRING now */
 #endif
 }
 /* (JIANT 0.4) a sound stored before 0.4 -> today's E values, in place: LOFI (3) {.., SWP, VIB, ARP, TONE} -> {.., CUT

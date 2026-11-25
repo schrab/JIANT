@@ -215,10 +215,19 @@ def hot_sections(ir):
 # to 0.9.10 the two new drawings (+6 KB of UI code) moved every engine's render 6 KB further (none of the sound
 # changed) and the owner's FM-1 went from fine to 94 % load and crackling on every output; the host counts were the
 # same. Now a change in the UI cannot move the sound's code or tables
+def late_tables():
+    """STRING's own tables and descriptor: out of .rodata.a, so the sound's recorded constants stay where they were"""
+    txt = (FW / "src" / "eng_string.c").read_text()
+    names = set(re.findall(r"^static const [^=;(]*?\b(\w+)\s*\[", txt, flags=re.M))
+    names |= set(re.findall(r"^static const engine_t (\w+) =", txt, flags=re.M))
+    return names
+
+
 def audio_sections(ir, reach):
     """reach's definitions and constants in the optimised IR given sections .text.a.<name> / .rodata.a.<name> (those
     with a section of their own, the RAM code and .noinit, keep it); (the IR, functions, constants)"""
     nf = nc = 0
+    late = late_tables()
 
     def fn(m):
         nonlocal nf
@@ -229,6 +238,8 @@ def audio_sections(ir, reach):
 
     def const(m):
         nonlocal nc
+        if m.group(2) in late:
+            return f'{m.group(1)}, section ".rodata.n.{m.group(2)}"{m.group(3)}'
         if m.group(2) not in reach or m.group(2).startswith(".") or ' section "' in m.group(0):
             return m.group(0)                           # (a string literal stays merged with the others)
         nc += 1

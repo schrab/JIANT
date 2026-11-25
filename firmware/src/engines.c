@@ -16,6 +16,9 @@
 #include "eng_noise.c"
 #include "eng_fm6.c"            /* FM6: 6-operator FM, msfa ported (fm6_core.c, Apache-2.0) */
 #include "eng_animal.c"         /* (JIANT 0.8.3) ANIMAL: animal calls (CMOS PULSE WHSTL WING GLOTT) */
+#if !FELUCCA_HOST_POWER
+#include "eng_string.c"         /* STRING: Karplus-Strong, in the COMB's lines (engine 8, GRAIN's retired number) */
+#endif
 #include "fm4_convert.c"        /* DIGITAL's tables, and its sounds -> FM6 */
 #if FELUCCA_HOST_POWER
 static void voice_kill(voice_t *v);   /* (voice.c) */
@@ -72,7 +75,7 @@ static const engine_t *const ENGINES[NENGINES] = {
 #if FELUCCA_HOST_POWER
     &ENG_GRAIN,                  /* 8 (ENGI_GRAIN; ports/ only: eng_grain.c) */
 #else
-    &ENG_GONE,                   /* 8: reserved (GRAIN, retired in JIANT) */
+    &ENG_STRING,                 /* 8 (ENGI_STRING; GRAIN's, retired in JIANT) */
 #endif
     &ENG_GONE,                   /* 9: reserved (PHYS, retired in TONIC: its sounds play as ANALOG) */
     &ENG_DRUM,                   /* 10 (ENGI_DRUM) */
@@ -134,6 +137,9 @@ static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
     ENGI_FM6,                    /* FM6 */
     ENGI_PHASE, ENGI_WHEEL,      /* PHASE WHEEL */
     ENGI_NOISE,                  /* NOISE */
+#if !FELUCCA_HOST_POWER
+    ENGI_STRING,                 /* STRING: after the rest, so the other PROGRAM CHANGE numbers stay */
+#endif
 #if FELUCCA_HOST_POWER
     ENGI_SAMPLE, ENGI_GRAIN,     /* (ports/) SAMPLE GRAIN: after the FM-1's, so PROGRAM CHANGE numbers them as before */
 #endif
