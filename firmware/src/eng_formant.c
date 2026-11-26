@@ -519,19 +519,19 @@ static const preset_t FORMANT_PRESETS[] = {
      * (0.9.8) the singers' REL longer (~190 ms to -40 dB, was ~70): a syllable's vowel carries on into the next note's
      * consonant, as sung, not cut off by the step's gate; their ATK ~5 ms (was ~1.5): a voice's onset, no tick.
      * (V10.6i) their own vibrato kept (none on PITCH from here): AT / MODW on the voice (BUZZ BREATH Q) */
-    {"CANTOR ES", {0, 64, 0, 0, 80, 6, 72, 0}, {24, 70, 112, 72}, 0, 1 | TAG(VOX), FX(0, 10, 30, 35), PAT(4), WORDS(LG_ES, 1), .mod = R_ATSHP},
-    {"CANTORA ES", {0, 0, 0, 4, 70, 10, 74, 0}, {26, 70, 112, 72}, 0, 1 | TAG(VOX), FX(0, 15, 30, 45), PAT(4), WORDS(LG_ES, 2),
+    {"CANTOR ES", {0, 64, 0, 0, 80, 6, 72, 0}, {24, 70, 112, 72}, 0, 1 | TAG(VOX), FX(0, 10, 30, 35), PAT(4), WORDS(LG_NO, 1), .mod = R_ATSHP},
+    {"CANTORA ES", {0, 0, 0, 4, 70, 10, 74, 0}, {26, 70, 112, 72}, 0, 1 | TAG(VOX), FX(0, 15, 30, 45), PAT(4), WORDS(LG_NO, 2),
      MODS(MMOD(1, PS_MODW, PD_E(5), 40))},
     {"SINGER EN", {0, 64, 0, 0, 84, 6, 72, 0}, {24, 70, 112, 72}, 0, 1 | TAG(VOX), FX(0, 10, 30, 35), PAT(4), WORDS(LG_EN, 3), .mod = R_ATSHP},
-    {"UTA JA", {0, 48, 0, 5, 76, 8, 74, 0}, {24, 70, 112, 70}, 0, 1 | TAG(VOX), FX(0, 15, 30, 40), PAT(4), WORDS(LG_JA, 4),
+    {"UTA JA", {0, 48, 0, 5, 76, 8, 74, 0}, {24, 70, 112, 70}, 0, 1 | TAG(VOX), FX(0, 15, 30, 40), PAT(4), WORDS(LG_NO, 4),
      MODS(MMOD(1, PS_MODW, PD_E(6), 40))},
-    {"WORD CHOIR", {0, 64, 16, 0, 45, 20, 62, 0}, {60, 90, 115, 85}, 0, TAG(VOX), FX(0, 70, 15, 90), PAT(5), WORDS(LG_ES, 5),
+    {"WORD CHOIR", {0, 64, 16, 0, 45, 20, 62, 0}, {60, 90, 115, 85}, 0, TAG(VOX), FX(0, 70, 15, 90), PAT(5), WORDS(LG_NO, 5),
      MODS(MMOD(1, PS_RAND, PD_PAN, 40))},   /* each note elsewhere */
     {"SCAT EN", {0, 64, 0, 0, 96, 4, 76, 0}, {16, 60, 100, 60}, 0, 1 | TAG(VOX), FX(0, 0, 35, 30), PAT(4), WORDS(LG_EN, 17),
      MODS(MMOD(1, PS_RAND, PD_SHP, 20))},   /* each syllable its colour */
     {"ROBOT EN", {0, 64, 0, -3, 127, 0, 90, 0}, {2, 65, 120, 56}, 0, 1 | TAG(VOX), FX(10, 10, 35, 30), PAT(4), WORDS(LG_EN, 6),
      MODS(P_LWAVE, LW_SH, P_LRATE, -10, MMOD(1, PS_LFO, PD_SHP, 30), MMOD(2, PS_LFO, PD_PAN, 30))},   /* S&H 1/16 */
-    {"WHISPER JA", {0, 64, 0, 3, 50, 120, 52, 0}, {40, 90, 110, 80}, 0, TAG(VOX), FX(0, 40, 30, 70), PAT(5), WORDS(LG_JA, 7),
+    {"WHISPER JA", {0, 64, 0, 3, 50, 120, 52, 0}, {40, 90, 110, 80}, 0, TAG(VOX), FX(0, 40, 30, 70), PAT(5), WORDS(LG_NO, 7),
      MODS(MMOD(1, PS_RAND, PD_PAN, 40), MMOD(2, PS_RAND, PD_REV, 30))},                  /* each word elsewhere */
     /* (NO) a dark Norwegian singer: a low, breathy voice, a long tail, the deep reverb of the northern choirs */
     {"BURZUM NO", {0, 32, 0, -5, 60, 70, 78, 0}, {20, 80, 110, 80}, 0, 1 | TAG(VOX), FX(0, 30, 40, 95), PAT(4), WORDS(LG_NO, 1)},

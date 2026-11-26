@@ -1132,7 +1132,7 @@ names them per engine):
 
 | id | label | values |
 | --- | --- | --- |
-| 61 | LANG | (`P_VLANG`, LOFI's RTRG slot) 0 OFF (VOICE as before, its vowels: bit for bit), 1 ES, 2 EN, 3 JA, 4 NO |
+| 61 | LANG | (`P_VLANG`, LOFI's RTRG slot) 0 OFF (VOICE as before, its vowels: bit for bit), 1 EN, 2 NO |
 | 74 | LYRIC | (`P_VLYR`, DRUM's IMAGE slot) 0 TEXT (the track's lyric, below; empty: W1), 1..16 W1..W16 (words the dice puts together from the language's bank, a seed each), 17..24 S1..S8 (scat) |
 
 With LANG on, the device relabels VOICE's EDIT values (`DESC` sends the engine's own, VOWEL ..): E1 POS (0 AUTO: each
@@ -1152,7 +1152,7 @@ nothing to 39.
 
 The lyric: printable ASCII (a byte outside 32..126 becomes a space), case ignored; words are letters (an apostrophe and
 "_" join: "mi_amor" sings as one word, two syllables), a "-" alone holds the vowel one more note (a melisma), anything
-else separates. Spanish is read by rules (the enye written "ny"), Japanese as romaji (Hepburn or kunrei), English
+else separates. English is read through the dictionary, Norwegian by rules
 through the device's dictionary (~2100 words; a word it lacks by rough letter rules), Norwegian by rules
 (ASCII respelling: *ae*, *oe*, *aa* for æ, ø, å; *dh*, *th*, *kj*, *sj*, *skj*, *rs*; doubled consonants one sound).
 The editor turns accented letters into plain ones (stress is not marked in singing) and ñ into "ny" before sending. A set takes effect at once (RAM: no

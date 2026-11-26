@@ -767,7 +767,7 @@ before loads as it was. PROGRAM CHANGE keeps 0.9.8's numbers (see [14](#14-midi-
   page draws one cycle of the morphed wave and says which two waves it blends. KNOB 2 is **DRIFT** (0–100 %, 0 = off):
   each voice's pitch (up to about ±27 cents) and filter wander slowly, each in its own way, as old analog oscillators
   do. A chord comes alive; at high values it goes seasick.
-- **VOICE**: a formant voice (after klattsch): vowels, talk, breath. Its pages: VOWELS (VOWEL, VOWEL2, TALK, SHIFT) and SOURCE (BUZZ, BREATH, RESO, RAND). Since 0.8.5 it also sings words and lyrics (LANG: OFF, ES, EN, JA, RU, DE, FR, ZH, PT, GN, NO): see [VOICE: words and lyrics](#voice-words-and-lyrics-085).
+- **VOICE**: a formant voice (after klattsch): vowels, talk, breath. Its pages: VOWELS (VOWEL, VOWEL2, TALK, SHIFT) and SOURCE (BUZZ, BREATH, RESO, RAND). Since 0.8.5 it also sings words and lyrics (LANG: OFF, EN, NO): see [VOICE: words and lyrics](#voice-words-and-lyrics-085).
 - **WHEEL**: a drawbar organ. DRAWBARS: **BARS** (sixteen registrations), SUB, BODY, TOP. COLOR: **PERC** (OFF, 2ND,
   3RD, 2SOFT, 3SOFT, 2SLOW, 3SLOW), CLICK (the key click), **GAIN** (0–12 dB; the DRIVE it replaced there is on FOCUS)
   and **SPEED**, the rotor's (OFF, SLOW, FAST). EDIT › **MORE** (ROTOR until V10.7.60): **DEPTH** (how much the rotary
@@ -850,8 +850,8 @@ engine's CPU with eight voices (GLOTT; CMOS, PULSE, WHSTL and WING about half): 
 
 ### VOICE: words and lyrics (0.8.5)
 
-VOICE sings: syllables, words and whole lyrics, in **Spanish**, **English**, **Japanese** and **Norwegian**. Turn it on
-with EDIT > **WORDS** > **LANG** (OFF, ES, EN, JA, NO), or pick a word preset: **CANTOR ES**, **CANTORA ES**,
+VOICE sings: syllables, words and whole lyrics, in **English** and **Norwegian**. Turn it on
+with EDIT > **WORDS** > **LANG** (OFF, EN, NO), or pick a word preset: **CANTOR ES**, **CANTORA ES**,
 **SINGER EN**, **UTA JA**, **WORD CHOIR**, **SCAT EN**, **ROBOT EN**, **WHISPER JA**, **BURZUM NO**. LANG OFF is the
 VOICE you know (its vowels), note for note as before.
 
@@ -1971,7 +1971,7 @@ you open GEN), follows **no genre** and breaks their rules on purpose, so every 
   a tritone ..), not just a whole step up.
 - **Time**: a chord 8 to 48 steps, the loop 8 to 64 (odd metres: 3/4, 5/4, 7/8 ..); **each track its own LEN and
   DIV** (1/8, 1/32, 8T, 16T: polyrhythm), a track's own swing, drum hits off the grid.
-- **Sound**: **any engine on any role**, ANIMAL and VOICE included (VOICE singing words in ES / EN / JA / NO, a phrase or
+- **Sound**: **any engine on any role**, ANIMAL and VOICE included (VOICE singing words in EN / NO, a phrase or
   scat), FM6, ANIMAL and VOICE on two tracks at most; DRUM-X's octaves per sound on the steps (x2 x4 x8, SHORT, GHOST,
   FLAM); wide pans, glides, vibratos, detune, distortion types (V10.8: glide, vibrato and detune less often and
   shallower: less pitch wobble).

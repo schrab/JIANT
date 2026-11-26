@@ -226,26 +226,7 @@ static int extensions(void)
 
 static int lyrics(void)
 {
-    int bad=0,ok=1;uint32_t l,i,ns,n;
-    static const struct {uint8_t lang,code;const char *word;} cases[]={
-        {LG_RU,PH_ZH,"zha"},{LG_DE,PH_SH,"scha"},{LG_DE,PH_TS,"za"},
-        {LG_FR,PH_SH,"chat"},{LG_ZH,PH_SH,"xian"},{LG_PT,PH_NY,"nha"},{LG_GN,PH_NY,"nya"}};
-    for(i=0;i<NELEM(cases);i++) {
-        uint8_t ph[SW_MAX];n=sy_word(cases[i].lang,cases[i].word,strlen(cases[i].word),ph,&ns);
-        ok &= n&&ns&&(ph[0]&63u)==cases[i].code;
-    }
-    bad+=check("VOICE: six language readers apply distinct phonetic rules",ok);
-    ok=1;
-    for(l=LG_RU;l<LG_N;l++) {
-        for(i=0;i<64;i++) {
-            struct {uint8_t pre,ph[SW_MAX],post;} buf={.pre=0xA5,.post=0x5A};
-            char text[64];for(uint32_t j=0;j<63;j++) text[j]="shcha~ng'yue"[(i+j)%11];text[63]=0;
-            n=sy_word(l,text,63,buf.ph,&ns);
-            ok &= n<=SW_MAX&&buf.pre==0xA5&&buf.post==0x5A;
-            for(uint32_t j=0;j<n;j++) ok &= (buf.ph[j]&63u)<PH_COUNT;
-        }
-    }
-    bad+=check("VOICE language readers bound phonemes on long input",ok);
+    int bad=0,ok=1;uint32_t i,n;
     ui_power_on();track_t *t=&trk[0];set_engine_of(t,ENGI_VOICE);t->engine=t->eng_req;song.sel=0;
     lyr_set(0,"hola luna.");t->p[P_VLANG]=LG_ES;t->p[P_VLYR]=LYR_FIXED;t->p[P_E0]=2;
     sing[0].pend=1;sing_block(t);sing_t first=sing[0];
@@ -265,11 +246,11 @@ static int lyrics(void)
        (motion.event[0].param&MOTION_LOCK)&&t->p[P_VLYR]==LYR_FIXED;
     bad+=check("LYRIC STEP places a real POS lock without using either component",ok);
     /* Saved project preserves the new choices and locks in the current format. */
-    t->p[P_VLANG]=LG_GN;trk[3].p[P_DKEYMODE]=1;
+    t->p[P_VLANG]=LG_NO;trk[3].p[P_DKEYMODE]=1;
     static project_t before,after;static project_store_t blob;
     project_capture(&before);
     ok=proj_pack(&blob,&before)&&proj_import(&after,&blob,sizeof blob)&&
-       after.t[0].p[P_VLANG]==LG_GN&&after.t[0].p[P_VLYR]==LYR_FIXED&&after.t[3].p[P_DKEYMODE]==1;
+       after.t[0].p[P_VLANG]==LG_NO&&after.t[0].p[P_VLYR]==LYR_FIXED&&after.t[3].p[P_DKEYMODE]==1;
     bad+=check("Project round trip preserves languages, fixed lyrics and EXT key map",ok);
     return bad;
 }

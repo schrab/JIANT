@@ -607,18 +607,8 @@ const parse = {
 function lyricText(s, language = "") {
   let text = String(s ?? "").replace(/[’‘]/g, "'").replace(/[çÇ]/g,"s")
     .replace(/[ñÑ]/g, c => c === "ñ" ? "ny" : "NY");
-  if (language === "RU") {
-    const abc = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
-    const latin = ["a","b","v","g","d","e","yo","zh","z","i","j","k","l","m","n","o","p","r","s","t","u","f","kh","ts","ch","sh","shch","","y","","e","yu","ya"];
-    text = text.replace(/[а-яё]/gi, c => latin[abc.indexOf(c.toLowerCase())]);
-  }
-  if (language === "DE") text = text.replace(/[äöüß]/gi, c => ({ä:"ae",ö:"oe",ü:"ue",ß:"ss"})[c.toLowerCase()]);
-  if (language === "ZH") text = text.replace(/[üǖǘǚǜ]/gi, "v");
-  if (language === "FR") text = text.replace(/[é]/gi, "ei").replace(/[èê]/gi, "eh").replace(/[œ]/gi, "oe")
-    .replace(/(?:an|en)(?=[^aeiouy]|$)/gi,"a~").replace(/on(?=[^aeiouy]|$)/gi,"o~").replace(/(?:in|ain)(?=[^aeiouy]|$)/gi,"e~");
-  if (language === "PT" || language === "GN") text = text.normalize("NFD").replace(/([aeiouy])\u0303/gi,"$1~");
   text = text.replace(/[çÇ]/g,"s").replace(/[ñÑ]/g, c => c === "ñ" ? "ny" : "NY").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[¿¡]/g, "");
-  if (language && /[^\x20-\x7E\r\n\t]/.test(text)) throw new Error("Usá letras latinas / Use Latin transliteration (ZH: pinyin).");
+  if (language && /[^\x20-\x7E\r\n\t]/.test(text)) throw new Error("Usá letras latinas / Use Latin transliteration.");
   text = text.replace(/[\r\n\t]/g," ").replace(/[^\x20-\x7E]/g, " ");
   if (language && text.length > 63) throw new Error(`${text.length}/63: acortá la letra transliterada / shorten the transliterated lyric.`);
   return text.slice(0,63);
@@ -1982,7 +1972,7 @@ function makeMockDevice(opt = {}) {
     st.preset = pi;
     for (let i = 0; i < 8; i++) st.p[P_E0 + i] = pr.e[i];
     [1, 2, 3, 4].forEach((id, k) => { st.p[id] = pr.env[k]; });
-    if (e.name === "VOICE") { const l = (pr.xp || 0) & 7; st.p[61] = l === 4 ? 10 : l; st.p[74] = (pr.xp || 0) >> 3; }   /* (NO) LANG 4/NO, LYRIC (P_VLANG
+    if (e.name === "VOICE") { const l = (pr.xp || 0) & 7; st.p[61] = l; st.p[74] = (pr.xp || 0) >> 3; }   /* (NO) LANG 2/NO, LYRIC (P_VLANG
                                                      = P_FM1_ATK 61, P_VLYR = P_FM3_REL 74; ui.c apply_preset_to) */
     st.p[37] = pr.mono ? 2 : 0;
     st.p[33] = 0; st.p[34] = 24; st.p[35] = 28; st.p[36] = 36;
@@ -2714,7 +2704,7 @@ const TEXT = {
     layout: "（ファームウェアのパラメーター数が想定と違うため、簡易表示にしています）",
     ctlHelp: "スライダーはクリックしてからホイールか矢印キーで微調整（Shift で 10 ずつ）、ダブルクリックで初期値。",
     lyricT: "歌詞（VOICE WORDS）",
-    lyricHelp: "VOICE トラックの歌詞（63 文字まで）。EDIT > WORDS の LANG で言語（ES / EN / JA / NO、日本語はローマ字）、LYRIC を TEXT に。音符ごとに次の音節を歌い、「-」は母音をもう一音のばす。",
+    lyricHelp: "VOICE トラックの歌詞（63 文字まで）。EDIT > WORDS の LANG で言語（EN / NO）、LYRIC を TEXT に。音符ごとに次の音節を歌い、「-」は母音をもう一音のばす。",
     lyricSend: "送信",
     lyricLang: "LANG",
     lyricSrc: "LYRIC",
@@ -2818,7 +2808,7 @@ const TEXT = {
     layout: "(The firmware has a different parameter count; showing a plain list.)",
     ctlHelp: "Sliders: click, then fine-tune with the wheel or arrow keys (Shift: steps of 10); double-click resets.",
     lyricT: "Lyric (VOICE WORDS)",
-    lyricHelp: "VOICE lyrics: up to 63 characters after transliteration. ES, EN, JA (romaji), RU, DE, FR, ZH (pinyin), PT, GN, NO. New languages use approximate phonetic singing rules; Mandarin notes follow your melody. TEXT advances each note; TEXT FIXED repeats POS. A \"-\" holds the vowel one more note.",
+    lyricHelp: "VOICE lyrics: up to 63 characters after transliteration. EN and NO. TEXT advances each note; TEXT FIXED repeats POS. A \"-\" holds the vowel one more note.",
 
     lyricSend: "Send",
     lyricLang: "LANG",
@@ -3284,7 +3274,7 @@ $("lyricsend").addEventListener("click", () => {
   });
 });
 /* LANG (P_VLANG, id 61) and LYRIC (P_VLYR, id 74): VOICE's words, in other engines' slots (sing.c) */
-const LYR_LANG = ["OFF", "ES", "EN", "JA", "RU", "DE", "FR", "ZH", "PT", "GN", "NO"];
+const LYR_LANG = ["OFF", "EN", "NO"];
 const LYR_SRC = ["TEXT", ...Array.from({ length: 16 }, (_, i) => `W${i + 1}`), ...Array.from({ length: 8 }, (_, i) => `S${i + 1}`), "TEXT FIXED"];
 function lyricPreview() {
   try { const text=lyricText($("lyric").value,LYR_LANG[+$("lyrlang").value]); $("lyric-preview").textContent=`${text.length}/63 · ${text}`; }
@@ -3310,7 +3300,7 @@ function updateBrowser() {
       const max=dev.pdesc[param]?.max;
       if (Number.isInteger(max)) for (const option of $(id).options) option.disabled=+option.value>max;
     }
-    if (document.activeElement !== $("lyrlang")) $("lyrlang").value = String(Math.max(0, Math.min(10, dev.dump.p[LYR_ID.lang] | 0)));
+    if (document.activeElement !== $("lyrlang")) $("lyrlang").value = String(Math.max(0, Math.min(2, dev.dump.p[LYR_ID.lang] | 0)));
     if (document.activeElement !== $("lyrsrc")) $("lyrsrc").value = String(Math.max(0, Math.min(25, dev.dump.p[LYR_ID.src] | 0)));
 
   }

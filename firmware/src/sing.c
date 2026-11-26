@@ -2,7 +2,7 @@
  * Copyright (C) 2026 Juan Ignacio Antonucci (Juan Jiant) */
 /* VOICE words (JIANT 0.8.5): the VOICE engine sings syllables, words and lyrics (included by eng_formant.c).
  *
- * LANG (EDIT > WORDS, P_VLANG: OFF ES EN JA NO; OFF is VOICE as before, its vowels) turns a VOICE track into a singer: each
+ * LANG (EDIT > WORDS, P_VLANG: OFF EN NO; OFF is VOICE as before, its vowels) turns a VOICE track into a singer: each
  * note it starts sings the next syllable of its lyric (a held note holds the vowel; a TIE holds it on; the release
  * sings the syllable's last consonants). The lyric (LYRIC, P_VLYR): TEXT, the track's own (typed on the device, sent
  * by the editor, saved with the project: lyr_txt), or W1..W16, words the dice puts together from the language's bank
@@ -10,9 +10,7 @@
  * S1..S8, scat (pseudo-words of the language's syllables). An empty TEXT sings W1.
  *
  * How the words are read, a syllable at a time (sy_word: the word's phonemes, a byte each, 0x40 the first of a
- * syllable): Spanish by rules (sy_es: the letters as Spanish reads them, seseo; sy_syl: the syllables, diphthongs and
- * the onset clusters pl br tr ..), Japanese as romaji (sy_ja: Hepburn and kunrei, a mora a syllable: "n" before a
- * consonant, a doubled consonant a longer closure, "-" the vowel again), English through the dictionary
+ * syllable): English through the dictionary
  * (felucca_lyrics.h, ~2100 words from the CMU Pronouncing Dictionary, syllabified by tools/gen_lyrics.py) and rough
  * letter rules for a word it lacks, Norwegian by rules too (sy_no_tok: the ASCII respelling ae oe aa, ei au oej,
  * sj skj kj rs, th dh, a doubled consonant one phoneme). In the text: words are letters (case and apostrophes
@@ -54,8 +52,8 @@ static volatile uint8_t ly_en_ok = 1;                  /* (the host: one image) 
 _Static_assert(PH_COUNT == 48, "sing.c PHON[]: one row a phoneme, in gen_lyrics.py's order");
 
 #define LYR_LEN 64u              /* a track's lyric: 63 characters and the 0 */
-enum { LG_OFF, LG_ES, LG_EN, LG_JA, LG_RU, LG_DE, LG_FR, LG_ZH, LG_PT, LG_GN, LG_NO, LG_N };
-static const char *const N_LANG[] = {"OFF", "ES", "EN", "JA", "RU", "DE", "FR", "ZH", "PT", "GN", "NO"};
+enum { LG_OFF, LG_EN, LG_NO, LG_N };
+static const char *const N_LANG[] = {"OFF", "EN", "NO"};
 #define LYR_NW 16u               /* W1..W16: words */
 #define LYR_NS 8u                /* S1..S8: scat */
 #define LYR_FIXED (1u + LYR_NW + LYR_NS)
@@ -166,65 +164,7 @@ static int ph_sonorant(uint32_t c)
 enum { TK_C, TK_S, TK_W };       /* a token: a consonant, a strong vowel (a e o), a weak one (i u) */
 static int sy_isv(int c) { return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u'; }
 
-/* Spanish letters -> tokens (tools/gen_lyrics.py es_tokens: the same) */
-static uint32_t sy_es_tok(const char *w, uint32_t n, uint8_t *tc, uint8_t *tk)
-{
-    uint32_t i, m = 0;
-    for (i = 0; i < n && m + 2u <= SW_MAX; i++) {
-        int c = w[i], nx = i + 1u < n ? w[i + 1u] : 0, nx2 = i + 2u < n ? w[i + 2u] : 0;
-        uint32_t code = 0xFFu, kind = TK_C;
-        switch (c) {
-        case 'a': code = PH_A; kind = TK_S; break;
-        case 'e': code = PH_E; kind = TK_S; break;
-        case 'o': code = PH_O; kind = TK_S; break;
-        case 'i': code = PH_I; kind = TK_W; break;
-        case 'u': code = PH_U; kind = TK_W; break;
-        case 'y':
-            if (sy_isv(nx)) code = PH_Y;
-            else { code = PH_I; kind = TK_W; }
-            break;
-        case 'c':
-            if (nx == 'h') { code = PH_CH; i++; }
-            else code = nx == 'e' || nx == 'i' ? PH_S : PH_K;
-            break;
-        case 'q': code = PH_K; if (nx == 'u') i++; break;
-        case 'g':
-            if (nx == 'e' || nx == 'i') code = PH_X;
-            else { code = PH_G; if (nx == 'u' && (nx2 == 'e' || nx2 == 'i')) i++; }
-            break;
-        case 'j': code = PH_X; break;
-        case 'x': tc[m] = PH_K; tk[m++] = TK_C; code = PH_S; break;
-        case 'z': case 's': code = PH_S; break;
-        case 'v': case 'b': code = PH_B; break;
-        case 'd': code = PH_D; break;
-        case 'f': code = PH_F; break;
-        case 'k': code = PH_K; break;
-        case 'p': code = PH_P; break;
-        case 't': code = PH_T; break;
-        case 'm': code = PH_M; break;
-        case 'w': code = PH_W; break;
-        case 'l':
-            if (nx == 'l') { code = PH_Y; i++; }
-            else code = PH_L;
-            break;
-        case 'n':
-            if (nx == 'y' && sy_isv(nx2)) { code = PH_NY; i++; }
-            else code = PH_N;
-            break;
-        case 'r':
-            if (nx == 'r') { code = PH_RR; i++; }
-            else code = !m || tc[m - 1u] == PH_N || tc[m - 1u] == PH_L || tc[m - 1u] == PH_S ? PH_RR : PH_RT;
-            break;
-        default: break;                                  /* h, the rest: silent */
-        }
-        if (code != 0xFFu) {
-            tc[m] = (uint8_t)code;
-            tk[m++] = (uint8_t)kind;
-        }
-    }
-    return m;
-}
-static int sy_es_cl(uint32_t a, uint32_t b)              /* an onset cluster: p b f k g t d + l r (not dl) */
+static int sy_cl(uint32_t a, uint32_t b)              /* an onset cluster (as the syllable reader needs): p b f k g t d + l r (not dl) */
 {
     return (a == PH_P || a == PH_B || a == PH_F || a == PH_K || a == PH_G || a == PH_T || a == PH_D) &&
            (b == PH_L || b == PH_RT) && !(a == PH_D && b == PH_L);
@@ -300,8 +240,8 @@ static uint32_t sy_syl(uint8_t *tc, const uint8_t *tk, uint32_t m, uint8_t *out,
             uint32_t c = i - pa;
             if (!c) st[i] = 1;
             else if (c == 1u) st[pa] = 1;
-            else if (c == 2u) st[sy_es_cl(tc[pa], tc[pa + 1u]) ? pa : pa + 1u] = 1;
-            else st[sy_es_cl(tc[i - 2u], tc[i - 1u]) ? i - 2u : i - 1u] = 1;
+            else if (c == 2u) st[sy_cl(tc[pa], tc[pa + 1u]) ? pa : pa + 1u] = 1;
+            else st[sy_cl(tc[i - 2u], tc[i - 1u]) ? i - 2u : i - 1u] = 1;
         }
         g++;
         pa = j;
@@ -316,100 +256,7 @@ static uint32_t sy_syl(uint8_t *tc, const uint8_t *tk, uint32_t m, uint8_t *out,
     return m;
 }
 
-/* Japanese romaji -> morae (gen_lyrics.py ja_nmora counts the same) */
-static uint32_t sy_ja(const char *w, uint32_t n, uint8_t *out, uint32_t *ns)
-{
-    uint32_t i = 0, m = 0, k = 0, gem = 0, lastv = PH_A;
-    static const uint8_t JV[5] = {PH_A, PH_I, PH_UJ, PH_E, PH_O};   /* a i u e o */
-#define JA_V(c) ((c) == 'a' ? 0 : (c) == 'i' ? 1 : (c) == 'u' ? 2 : (c) == 'e' ? 3 : (c) == 'o' ? 4 : -1)
-#define JA_PUT(c, s) do { if (m < SW_MAX) out[m++] = (uint8_t)((c) | ((s) ? SYB : 0u)); } while (0)
-    while (i < n) {
-        int c = w[i], nx = i + 1u < n ? w[i + 1u] : 0, nx2 = i + 2u < n ? w[i + 2u] : 0;
-        if (JA_V(c) >= 0) {                                /* a vowel */
-            if (gem) JA_PUT(PH_SIL, 1);
-            lastv = c == 'u' && lastv == PH_O && k ? PH_O : JV[JA_V(c)];   /* (ou: a long o, sung o-o) */
-            JA_PUT(lastv, !gem);
-            gem = 0;
-            k++;
-            i++;
-        } else if (c == '-') {                             /* the vowel again */
-            JA_PUT(lastv, 1);
-            k++;
-            i++;
-        } else if (c == 'n' && JA_V(nx) < 0 && nx != 'y') {   /* the moraic n */
-            JA_PUT(PH_NM, 1);
-            k++;
-            i += (nx == 'n' || nx == '\'') && JA_V(nx2) < 0 ? 2u : 1u;
-        } else if ((c == nx && c >= 'a' && c <= 'z') || (c == 't' && nx == 'c')) {   /* a doubled consonant */
-            gem = 1;
-            i++;
-        } else if (c < 'a' || c > 'z') {                   /* (an apostrophe, ..) */
-            i++;
-        } else {                                           /* a consonant (+ y) + a vowel */
-            uint32_t j = i, on = 0xFFu, pal = 0, v;
-            int vv;
-            switch (c) {
-            case 's': on = nx == 'h' ? PH_SH : PH_S; break;
-            case 'c': on = nx == 'h' ? PH_CH : PH_K; break;
-            case 't': on = nx == 's' ? PH_TS : PH_T; break;
-            case 'k': on = PH_K; break;
-            case 'n': on = PH_N; break;
-            case 'h': on = PH_H; break;
-            case 'f': on = PH_F; break;
-            case 'm': on = PH_M; break;
-            case 'y': on = PH_Y; break;
-            case 'r': case 'l': on = PH_RT; break;
-            case 'w': on = PH_W; break;
-            case 'g': on = PH_G; break;
-            case 'z': on = PH_Z; break;
-            case 'j': on = PH_J; break;
-            case 'd': on = PH_D; break;
-            case 'b': on = PH_B; break;
-            case 'p': on = PH_P; break;
-            case 'v': on = PH_V; break;
-            default: on = PH_K; break;
-            }
-            while (j < n && JA_V(w[j]) < 0 && w[j] != '-') {
-                if (j > i && w[j] == 'y')
-                    pal = 1;
-                j++;
-            }
-            vv = j < n ? JA_V(w[j]) : -1;
-            v = vv >= 0 ? JV[vv] : PH_UJ;                  /* (a consonant alone: sung with u) */
-            if (on == PH_S && vv == 1) on = PH_SH;         /* si -> shi, ti -> chi, tu -> tsu, hu -> fu, zi di -> ji, */
-            else if (on == PH_T && vv == 1) on = PH_CH;    /* du -> zu */
-            else if (on == PH_T && vv == 2) on = PH_TS;
-            else if (on == PH_H && vv == 2) on = PH_F;
-            else if ((on == PH_Z || on == PH_D) && vv == 1) on = PH_J;
-            else if (on == PH_D && vv == 2) on = PH_Z;
-            if (on == PH_SH || on == PH_CH || on == PH_J)
-                pal = 0;                                   /* (sha cha ja: palatal already) */
-            {
-                uint8_t mo[4];
-                uint32_t nm = 0, q;
-                if (gem) mo[nm++] = PH_SIL;
-                if (!(on == PH_W && vv == 4))              /* (wo: o) */
-                    mo[nm++] = (uint8_t)on;
-                if (pal) mo[nm++] = PH_Y;
-                mo[nm++] = (uint8_t)(lastv = v);
-                for (q = 0; q < nm; q++)
-                    JA_PUT(mo[q], !q);
-            }
-            gem = 0;
-            k++;
-            i = vv >= 0 ? j + 1u : j;
-        }
-    }
-#undef JA_V
-#undef JA_PUT
-    *ns = k;
-    return m;
-}
-
-/* English: the dictionary (tools/gen_lyrics.py en_dict_pack; 0.9.0: Huffman-coded, 4.4 KB less than as bytes): a word
- * is the count of letters shared with the word before (code P), the rest of its letters (code L: 0 .. 25 a .. z) and
- * LY_END, its phonemes (code H: SYB | code) and LY_END; each LY_EN_BLK-th word whole, from a byte, LY_EN_IDX its place.
- * A code: hc the codes of each length 1 .. 15, then the symbols in code order (canonical); lut the next k bits ->
+/* A code: hc the codes of each length 1 .. 15, then the symbols in code order (canonical); lut the next k bits ->
  * length << 8 | symbol (0: a longer code, read from hc). The reader keeps the next n bits in acc (MSB first), at least
  * 25 after each symbol (a code is at most 15), reading up to 4 bytes ahead (the dictionary ends with 4 to spare) */
 typedef struct { const uint8_t *hc; const uint16_t *lut; uint32_t k; } ly_code_t;
@@ -582,7 +429,6 @@ static uint32_t sy_en_rules(const char *w, uint32_t n, uint8_t *tc, uint8_t *tk)
     return m;
 }
 
-#include "sing_ext.c"
 /* word w (lower case letters, n) in lang -> out (SW_MAX), its phonemes; *ns its syllables (0: none, a word to skip) */
 static uint32_t sy_word(uint32_t lang, const char *w, uint32_t n, uint8_t *out, uint32_t *ns)
 {
@@ -591,8 +437,6 @@ static uint32_t sy_word(uint32_t lang, const char *w, uint32_t n, uint8_t *out, 
     *ns = 0;
     if (!n)
         return 0;
-    if (lang == LG_JA)
-        return sy_ja(w, n, out, ns);
     if (lang == LG_EN) {
         uint32_t len = sy_en_find(w, n, out), i;
         if (len) {
@@ -601,10 +445,8 @@ static uint32_t sy_word(uint32_t lang, const char *w, uint32_t n, uint8_t *out, 
             return len;
         }
         m = sy_en_rules(w, n, tc, tk);
-    } else if(lang>=LG_RU && lang<LG_NO) {
-        m=sy_ext(lang,w,n,tc,tk);
     } else {
-        m = lang == LG_NO ? sy_no_tok(w, n, tc, tk) : sy_es_tok(w, n, tc, tk);
+        m = sy_no_tok(w, n, tc, tk);
     }
     return sy_syl(tc, tk, m, out, ns);
 }
@@ -612,19 +454,10 @@ static uint32_t sy_word(uint32_t lang, const char *w, uint32_t n, uint8_t *out, 
 /* --------------------------------------------------------------------------------------- the generator --- */
 /* a phrase: templates of categories (N V A D P C: the banks' rows), filled from the theme with words that fit the
  * syllables left; a phrase as long as the pattern's notes; the last word fits exactly (or a vocable) */
-static const char *const TPL_ES[] = {"DNA", "VDN", "DNV", "PDN", "CDNV", "DNPDN", "VPDN", "NV", "PDNA"};
 static const char *const TPL_EN[] = {"CVDN", "DAN", "PDAN", "DNPDN", "CV", "VDN", "PDN", "DNPAN"};
-static const char *const TPL_JA[] = {"NPV", "ANPV", "NPN", "NPNPV", "AN", "NPAN"};
 static const char *const TPL_NO[] = {"DNA", "VDN", "DNV", "PDN", "CDNV", "DNPDN", "VPDN", "NV", "PDNA"};
-static const char *const SCAT_ES[] = {"la", "le", "li", "lo", "lu", "na", "ne", "no", "ma", "me", "mo", "pa", "pe", "po",
-                                      "ta", "te", "to", "ba", "bo", "da", "do", "ra", "ri", "sa", "so", "ya", "yo", "cha",
-                                      "fa", "ga", "go", "lan", "son", "tin", "bal", "mar", "sol", "dum", "pam"};
 static const char *const SCAT_EN[] = {"doo", "bee", "dah", "bop", "wah", "dum", "dat", "dot", "day", "shoo", "la", "na",
                                       "yeah", "oh"};
-static const char *const SCAT_JA[] = {"ra", "ri", "ru", "re", "ro", "na", "ni", "nu", "ne", "no", "ta", "te", "to", "ka",
-                                      "ki", "ku", "ke", "ko", "sa", "shi", "su", "se", "so", "ma", "mi", "mu", "me", "mo",
-                                      "ha", "hi", "fu", "he", "ho", "ya", "yu", "yo", "wa", "pa", "pi", "pu", "pe", "po",
-                                      "n"};
 static const char *const SCAT_NO[] = {"la", "le", "li", "lo", "lu", "ra", "ri", "ta", "ti", "ma", "mo"};
 static uint32_t sy_rnd(uint32_t *r)
 {
@@ -641,8 +474,8 @@ typedef struct {
     const uint8_t *meta;
     const uint16_t (*grp)[6];
 } ly_bank_t;
-/* NO has its own bank at index 3; the other languages keep their old mapping */
-static uint32_t ly_bank_idx(uint32_t lang) { return lang == LG_NO ? 3u : (lang - 1u) % 3u; }
+/* EN NO are the two banks, in LANG order (1..2) */
+#define ly_bank_idx(lang) ((lang) - 1u)
 static uint32_t ly_char(const ly_bank_t *b, uint32_t bit)
 {
     uint32_t byte=bit>>3;
@@ -659,10 +492,8 @@ static __attribute__((noinline)) const char *ly_word(const ly_bank_t *b, uint32_
     out[m]=0;
     return out;
 }
-static const ly_bank_t LY_BANK[4] = {
-    {LY_ES_TXT, LY_ES_OFF, LY_ES_META, LY_ES_GRP},
+static const ly_bank_t LY_BANK[2] = {
     {LY_EN_TXT, LY_EN_OFF, LY_EN_META, LY_EN_GRP},
-    {LY_JA_TXT, LY_JA_OFF, LY_JA_META, LY_JA_GRP},
     {LY_NO_TXT, LY_NO_OFF, LY_NO_META, LY_NO_GRP},
 };
 static uint32_t ly_meta(const ly_bank_t *b,uint32_t j) {return b->meta[j>>1]>>((j&1u)*4u)&15u;}
@@ -747,17 +578,6 @@ static uint32_t sy_norm(const char *s, uint32_t n, char *d, uint32_t max)
     d[m] = 0;
     return m;
 }
-static uint32_t sy_norm_lang(uint32_t lang, const char *s, uint32_t n, char *d, uint32_t max)
-{
-    if(lang<LG_RU) return sy_norm(s,n,d,max);
-    uint32_t i,m=0;
-    for(i=0;i<n&&s[i]&&m+1u<max;i++) {
-        int c=s[i];if(c>='A'&&c<='Z') c+=32;
-        if((c>='a'&&c<='z')||c=='~'||(c=='\''&&lang==LG_GN)) d[m++]=(char)c;
-    }
-    d[m]=0;return m;
-}
-
 /* (0.9.0) English words resolved in the main loop, so the audio ISR does not search the dictionary (Huffman-coded:
  * ~3x the old lookup's instructions) when a word starts. sy_word's result (n phonemes, ns syllables, the bytes) for:
  *   lyb_*  every word the generator can sing in English (the bank's LY_EN_NW, SCAT_EN, the vocable), built once at
@@ -772,7 +592,7 @@ static uint32_t sy_norm_lang(uint32_t lang, const char *s, uint32_t n, char *d, 
 #define LYB_N (LY_EN_NW + NELEM(SCAT_EN) + 1u)
 #define LYB_PH 1856u                                     /* (2 + n a word: tests/voice_test.c checks they all fit) */
 #define LYC_N 192u
-static const char *const VOCABLE[4] = {"la", "oh", "ra", "oh"};   /* ES EN JA NO: what is sung when no word fits */
+static const char *const VOCABLE[2] = {"oh", "oh"};   /* EN NO: what is sung when no word fits */
 static uint16_t lyb_at[LYB_N] __attribute__((section(".pool")));   /* 1 + the word's entry in lyb_ph, 0 none */
 static uint8_t lyb_ph[LYB_PH] __attribute__((section(".pool")));
 static uint8_t lyb_ok __attribute__((section(".pool")));   /* (the pool: the RAM region's small globals as they were) */
@@ -819,7 +639,7 @@ static void sing_init(void)
     lyb_ok = 0;
     for (k = 0; k < LYB_N; k++) {
         char word[20];
-        const char *q = k < LYB_SCAT ? ly_word(&LY_BANK[1], k, word) : k < LYB_N - 1u ? SCAT_EN[k - LYB_SCAT] : VOCABLE[1];
+        const char *q = k < LYB_SCAT ? ly_word(&LY_BANK[0], k, word) : k < LYB_N - 1u ? SCAT_EN[k - LYB_SCAT] : VOCABLE[0];
         uint32_t m = sy_entry(q, 64u, &lyb_ph[o], LYB_PH - o);
         lyb_at[k] = (uint16_t)(m ? o + 1u : 0u);
         o += m;
@@ -882,24 +702,8 @@ static __attribute__((noinline)) uint32_t sy_take_entry(const uint8_t *e, uint8_
  * LYB_NONE */
 static uint32_t sy_gen_word(const track_t *t, sing_t *s, uint32_t lang, uint32_t lyr)
 {
-    uint32_t theme = (uint32_t)clamp(t->p[P_E1], 0, 127) >> 4, f = (uint32_t)clamp(t->p[P_E1], 0, 127) & 15u, tries,
-             pcat = 0;
+    uint32_t theme = (uint32_t)clamp(t->p[P_E1], 0, 127) >> 4, f = (uint32_t)clamp(t->p[P_E1], 0, 127) & 15u, tries;
     int32_t j = -1;
-    if(lang>=LG_RU && lang<LG_NO) {
-        if(!s->prem) {
-            s->prem=(uint8_t)sy_phrase_len(t);
-            s->rng=(lyr*0x9E3779B1u)^(lang*0x85EBCA77u)^(theme*0xC2B2AE3Du)^s->phr++;
-        }
-        const char *q=SY_EXT_WORDS[lang-LG_RU];
-        uint32_t pick=theme*2u+(sy_rnd(&s->rng)&1u);
-        if(theme==TH_ANY) pick=sy_rnd(&s->rng)&15u;
-        if(!ly_en_ok) q="la";
-        else if(lyr>LYR_NW) q=SCAT_ES[sy_rnd(&s->rng)%NELEM(SCAT_ES)];
-        else while(pick--) while(*q++);
-        str_cpy(s->w,q,sizeof s->w);
-        s->prem--;
-        return LYB_NONE;
-    }
     const ly_bank_t *b = &LY_BANK[ly_bank_idx(lang)];
     uint32_t src = LYB_NONE;
     if (!s->prem) {                                      /* a new phrase */
@@ -911,9 +715,8 @@ static uint32_t sy_gen_word(const track_t *t, sing_t *s, uint32_t lang, uint32_t
         s->tps = 0;
     }
     if (lyr > LYR_NW) {                                  /* scat: 1 .. 3 syllables (English: one) */
-        const char *const *L = lang == LG_ES ? SCAT_ES : lang == LG_EN ? SCAT_EN : lang == LG_JA ? SCAT_JA : SCAT_NO;
-        uint32_t nl = lang == LG_ES ? NELEM(SCAT_ES) : lang == LG_EN ? NELEM(SCAT_EN) :
-                      lang == LG_JA ? NELEM(SCAT_JA) : NELEM(SCAT_NO);
+        const char *const *L = lang == LG_EN ? SCAT_EN : SCAT_NO;
+        uint32_t nl = lang == LG_EN ? NELEM(SCAT_EN) : NELEM(SCAT_NO);
         uint32_t ns = lang == LG_EN ? 1u : 1u + sy_rnd(&s->rng) % 3u, k, m = 0;
         if (ns > s->prem) ns = s->prem;
         for (k = 0; k < ns; k++) {
@@ -930,9 +733,8 @@ static uint32_t sy_gen_word(const track_t *t, sing_t *s, uint32_t lang, uint32_t
         return src;
     }
     for (tries = 0; tries < 10u && j < 0; tries++) {
-        const char *const *T = lang == LG_ES ? TPL_ES : lang == LG_EN ? TPL_EN : lang == LG_JA ? TPL_JA : TPL_NO;
-        uint32_t nt = lang == LG_ES ? NELEM(TPL_ES) : lang == LG_EN ? NELEM(TPL_EN) :
-                      lang == LG_JA ? NELEM(TPL_JA) : NELEM(TPL_NO), cat, th;
+        const char *const *T = lang == LG_EN ? TPL_EN : TPL_NO;
+        uint32_t nt = lang == LG_EN ? NELEM(TPL_EN) : NELEM(TPL_NO), cat, th;
         const char *q;
         if (s->tpl == 0xFFu || !T[s->tpl % nt][s->tps]) {
             s->tpl = (uint8_t)(sy_rnd(&s->rng) % nt);
@@ -959,13 +761,12 @@ static uint32_t sy_gen_word(const track_t *t, sing_t *s, uint32_t lang, uint32_t
             j = ly_pick(lang, th, cat, s->prem, 0, &s->rng);
         if (j >= 0 && cat == 0u)
             s->fem = (ly_meta(b,j) >> 3) & 1u;
-        pcat = cat;
     }
     if (j < 0)                                           /* nothing fits: a noun or verb of exactly what is left */
         for (tries = 0; tries < 6u && j < 0; tries++)
             j = ly_pick(lang, (sy_rnd(&s->rng) % 7u + 5u) % 8u, tries & 1u, s->prem, 1, &s->rng);
     if (j < 0) {                                         /* a vocable */
-        const char *v = lang == LG_ES ? VOCABLE[0] : lang == LG_EN ? VOCABLE[1] : lang == LG_JA ? VOCABLE[2] : VOCABLE[3];
+        const char *v = VOCABLE[lang == LG_EN ? 0u : 1u];
         src = LYB_N - 1u;
         s->w[0] = v[0];
         s->w[1] = v[1];
@@ -981,8 +782,6 @@ static uint32_t sy_gen_word(const track_t *t, sing_t *s, uint32_t lang, uint32_t
             m++;
         }
         s->w[m] = 0;
-        if (lang == LG_ES && s->fem && m && s->w[m - 1u] == 'o' && pcat == 2u)
-            s->w[m - 1u] = 'a';                          /* the adjective after a feminine noun */
         s->prem = (uint8_t)(s->prem - clamp(ly_meta(b,j) & 7u, 1, s->prem));
     }
     return (uint32_t)j;                                  /* (English: the bank's word j, as it is) */
@@ -1076,7 +875,7 @@ static int sy_word_next(const track_t *t, sing_t *s, uint32_t lang, uint32_t lyr
                 e = 0;                                   /* (the text changed meanwhile: as before) */
         }
         if (!e)
-            n = sy_word(lang, nw, sy_norm_lang(lang,s->w, sizeof s->w, nw, sizeof nw), sw->wph, &ns);
+            n = sy_word(lang, nw, sy_norm(s->w, sizeof s->w, nw, sizeof nw), sw->wph, &ns);
         sw->wn = (uint8_t)n;
         sw->wnsy = (uint8_t)ns;
         sw->wlang = (uint8_t)lang;
@@ -1099,7 +898,7 @@ static uint32_t sy_take(uint32_t lang, const sing_t *s, const sw_t *sw, uint32_t
     if (sw->wok && sw->wlang == lang)                    /* (0.9.0) the word's, as sy_word_next resolved it */
         n = sy_take_entry(&sw->wn, buf, &ns);            /* (wn, wnsy, wph: an entry's layout) */
     else
-        n = sy_word(lang, nw, sy_norm_lang(lang,s->w, sizeof s->w, nw, sizeof nw), buf, &ns);
+        n = sy_word(lang, nw, sy_norm(s->w, sizeof s->w, nw, sizeof nw), buf, &ns);
     for (a = 0; a < n; a++)                              /* the k-th syllable's first phoneme */
         if ((buf[a] & SYB) && !k--)
             break;
@@ -1191,7 +990,7 @@ static void sy_enter(sing_t *s, uint32_t lang)
         return;
     }
     if (P->cls == PC_PLO)
-        ms = s->st == 0u ? P->dur : s->st == 1u ? 8u : lang == LG_EN ? 45u : lang == LG_JA ? 20u : 6u;
+        ms = s->st == 0u ? P->dur : s->st == 1u ? 8u : lang == LG_EN ? 45u : 6u;
     else if (P->cls == PC_AFF)
         ms = s->st == 0u ? P->dur : PHON[ph_fric(c)].dur * 3u / 4u;
     else if (P->cls == PC_VOW)
@@ -1215,7 +1014,7 @@ static void sy_adv(sing_t *s, uint32_t lang)
     uint32_t c = s->i < s->np ? s->ph[s->i] : PH_SIL, k = PHON[c].cls;
     if (k == PC_PLO && s->st < 2u) {
         s->st++;
-        if (s->st == 2u && (PHON[c].av || lang == LG_ES)) /* voiced (and Spanish p t k): no aspiration */
+        if (s->st == 2u && PHON[c].av) /* voiced: no aspiration */
             s->st = 3;
         if (s->st < 3u) {
             sy_enter(s, lang);
@@ -1535,10 +1334,10 @@ static void lyr_dice(const track_t *t, uint32_t lang, uint32_t seed, char *out, 
 {
     static sing_t g;                                     /* (main loop only) */
     uint32_t m = 0, nw, li;
-    lang = lang ? lang : LG_ES;
+    lang = lang ? lang : LG_EN;
     memset(&g, 0, sizeof g);
     g.phr = (uint16_t)seed;
-    if (lang != LG_NO) {                                 /* ES EN JA: one line, byte for byte as before */
+    if (lang != LG_NO) {                                 /* EN: one line, byte for byte as before */
         for (nw = 0; nw < 16u; nw++) {
             uint32_t i;
             sy_gen_word(t, &g, lang, 1u + seed % LYR_NW);

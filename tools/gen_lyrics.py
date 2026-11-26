@@ -617,9 +617,9 @@ def main():
              c_strs('"' + "".join(f"\\x{b:02x}" for b in p) + '"' for _, p in ruled_ph) + "};")
     L.append("#endif")
     # the banks
-    nsyl = {"es": es_nsyl, "en": lambda w: nsyl_en[w] if w in nsyl_en else 0, "ja": ja_nmora, "no": no_nsyl}
+    nsyl = {"en": lambda w: nsyl_en[w] if w in nsyl_en else 0, "no": no_nsyl}
     counts = {}
-    for lang in ("es", "en", "ja", "no"):
+    for lang in ("en", "no"):
         rows = load_bank(lang, nsyl[lang])
         bank_words = []
         txt, offs, meta, grp = bytearray(), [], [], [[[0, 0] for _ in CATS] for _ in THEMES]
@@ -658,7 +658,7 @@ def main():
     out.write_text("\n".join(L) + "\n")
     print(f"lyrics: {len(PHONEMES)} phonemes; English dictionary {len(words)} words, "
           f"{len(blob) + 2 * len(idx) + len(tp) + len(tl) + len(th) + nlut + 2*len(pairs)} B (Huffman/pairs; {plain} B as bytes); "
-          f"banks ES {counts['es']} EN {counts['en']} JA {counts['ja']} NO {counts['no']} words -> {out}")
+          f"banks EN {counts['en']} NO {counts['no']} words -> {out}")
 
 
 if __name__ == "__main__":

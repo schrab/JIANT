@@ -84,7 +84,7 @@ Every detail: the [Changelog](#changelog) and the manual's
 ### What's in it
 
 - **Engines**: DRUM-X (synthesized drums with a morph between two sides), ANALOG, FM6 (six operators, 32 algorithms,
-  DX7 banks), PHASE, MATH (bytebeat and floatbeat), VOICE (sings words in Spanish, English and Japanese), WHEEL, NOISE,
+  DX7 banks), PHASE, MATH (bytebeat and floatbeat), VOICE (sings words in English and Norwegian), WHEEL, NOISE,
   ANIMAL (birds, insects and frogs from physical models), STRING (a plucked, struck or bowed string, and guitar
   feedback), ADD (additive) and EXT (the USB audio input, or SWARM). No samples.
 - **Sequencer**: 64 steps a track, piano roll and drum grid, step components, EUCLID and MODES, MUTATE, PLAYHEADS,
@@ -281,7 +281,7 @@ ADD** and **EXT** (the USB audio input, or SWARM: a melody out of the Bluetooth 
   moves between spectra, BRIGHT and PARTIAL how many partials, SHIFT stretches them, COMB carves notches, DECAY lets
   the highs die first and MOTION sweeps the spectrum.
 - **VOICE** (formants, after klattsch), **WHEEL** (drawbar organ) and **WEST** (a west-coast voice: folders and a low-pass gate).
-  **VOICE sings words** (0.8.5): LANG ES / EN / JA / RU / DE / FR / ZH / PT / GN / NO, each note the next syllable of a lyric you type (on the device or
+  **VOICE sings words** (0.8.5): LANG EN / NO, each note the next syllable of a lyric you type (on the device or
 
   from the web editor) or of phrases the dice puts together from each language's word bank; POS and LOOP automate it.
    the Norwegian dice writes four-line stanzas, one line per pattern loop, and **BURZUM NO** loads one;
@@ -1054,7 +1054,7 @@ included, stay selectable.
   recorded is never "recovered" by the takes list and a take cut short keeps all it wrote; the trim's edges are taken
   by their grips, move from where they were taken and land exactly on the take's ends; EXPORT says when the take is
   trimmed; Spanish INICIO AQUÍ / FINAL AQUÍ / SIN RECORTE.
-- **VOICE sings softer and more like a singer** (LANG ES / EN / JA; the vowel presets as before, but for their glide):
+- **VOICE sings softer and more like a singer** (LANG EN / NO; the vowel presets as before, but for their glide):
   - **Softer S** (and z, sh, f, th): the hiss is band-passed (no fizz past ~12 kHz; s centred ~6 kHz, sh ~2.7 kHz),
     comes in over ~10 ms instead of switching on (s: 10–90 % in 9 ms, was 3; at most 9 % of its level a ms, was 23)
     and sits ~5 dB lower (s −19.6 dB of the vowel, was −14.6); the vowel's tail fades under it (~6 ms).
@@ -1488,7 +1488,7 @@ The HUD skin, fixed (every finding of the HUD audit), and a faster screen there.
   against the loop's: polyrhythm, in nine pieces of ten) **and DIV** (1/8, 1/32, 8T, 16T, 1/4), a track's own swing,
   drum hits off the grid (TIMING) and on chance.
 - **Its sounds**: **any engine on any role**, ANIMAL and VOICE included (a VOICE sings words seven times in ten: ES,
-  EN or JA, a W phrase or S scat), within the genres' budgets: FM6 on two tracks at most, ANIMAL and VOICE two each,
+  EN or NO, a W phrase or S scat), within the genres' budgets: FM6 on two tracks at most, ANIMAL and VOICE two each,
   NOISE never the bass, the lead or the arp; the DRUM-X **octaves per sound** on the steps (x2 x4 x8, x8 a hat's or the rim's
   only, SHORT, GHOST, FLAM); wide pans, glides, vibratos, the distortion's types, detune.
 - **Its motion**: step components scattered on every melodic part, the bass too (RAND, OCT, BEND, ECHO / EVEN, PULSE,
@@ -1520,29 +1520,28 @@ The HUD skin, fixed (every finding of the HUD audit), and a faster screen there.
   budget's (8 voices, the overload guard), which EXPLORE's pieces never pass more than the genres' do.
 
 ### v0.8.5
-- **VOICE sings words** (the owner: "word generation with the Voice engine in several languages, Spanish, English and
-  maybe Japanese; a multilingual database, many words; phrases that literally sing lyrics, random or written by the
-  user; automatable"). EDIT > **WORDS** > **LANG** ES / EN / JA turns a VOICE track into a singer: **each note sings the
+- **VOICE sings words** (the owner: "word generation with the Voice engine in several languages, English and
+  Norwegian; a multilingual database, many words; phrases that literally sing lyrics, random or written by the
+  user; automatable"). EDIT > **WORDS** > **LANG** EN / NO turns a VOICE track into a singer: **each note sings the
   next syllable** of its lyric (a held note holds the vowel, a TIE holds it on, the release sings the syllable's last
   consonants; legato glides from syllable to syllable, a choir sings it together). LANG OFF is VOICE as before, bit for
   bit (the goldens are unchanged).
 - **The voice**: the same glottal source and Klatt cascade, now articulated. Every phoneme is a target the formants
   glide to (6–23 ms, block rate), with three gains: voicing, aspiration (noise into the cascade: *h*, the aspiration
-  after *p t k*: ~45 ms in English, 20 in Japanese, 6 in Spanish) and frication (high-passed noise into the fourth
+  after *p t k*: ~45 ms in English, 6 in Norwegian) and frication (high-passed noise into the fourth
   resonator, tuned to the consonant: *s* ~6 kHz, *sh* ~2.7 kHz, *f* broad and weak, the bursts). **Plosives** a closure
   (silent, a voice bar for *b d g*; the formants at the place's locus), a burst, the vowel's transition;
-  **affricates** (*ch ts j*) a closure into their fricative; **nasals** (*m n ñ ng*, Japanese moraic *n*) and
-  **liquids** voiced with wide bandwidths; the Spanish tap a 22 ms dip, the trill three; glides *y w*. 46 phonemes:
-  the vowels of Spanish / Japanese (*a e i o u*, the Japanese unrounded *u*) and of English (*ih eh ae aa ao uh ah er
+  **affricates** (*ch ts j*) a closure into their fricative; **nasals** (*m n ng ny*) and
+  **liquids** voiced with wide bandwidths; the tap a 22 ms dip, the trill three; glides *y w*. 48 phonemes:
+  the vowels of English (*ih eh ae aa ao uh ah er
   ax*, diphthongs as a vowel and its offglide). The release sings the coda at the note's level, not faded by the ADSR.
-- **Reading**: **Spanish** by rules (seseo, *ll y*, *rr*, *j ge gi*, *ch qu gu*, diphthongs and hiatus, the onset
-  clusters *pl br tr* ..; ñ written NY), **Japanese** romaji to morae (Hepburn and kunrei, a note a mora, moraic *n*,
+- **Reading**: **Norwegian** by rules (the ASCII respelling *ae oe aa*, the diphthongs *ei au oej*, *sj skj kj rs*, *th dh*, a doubled consonant one phoneme),
   doubled consonants as a stop, *ou* sung o-o), **English** through a dictionary of **2095 words** (the most common, from
   the CMU Pronouncing Dictionary, BSD-2-Clause; syllabified by maximal onset at build time, `tools/gen_lyrics.py`) and
   rough letter rules for a word it lacks. In a lyric, "-" holds the vowel one more note, "_" joins words (*mi_amor*).
 - **LYRIC**: **TEXT** (the track's own lyric, up to 63 characters) or **W1–W16**, the dice: phrases of real words from
-  the language's bank (**306 Spanish, 272 English, 169 Japanese words** in seven themes, THEME: LOVE NIGHT SEA SKY ROAD
-  DREAM FIRE or ANY), put together by templates (*mi luna brilla*, *in the cold night*, *kaze ga fuku*; a Spanish
+  the language's bank (**1593 English dictionary words, 344 Norwegian words** in seven themes, THEME: LOVE NIGHT SEA SKY ROAD
+  DREAM FIRE or ANY), put together by templates (*in the cold night*, *natt over fjorden*; a Norwegian
   adjective agrees with its noun), each phrase exactly as long as the pattern's notes, the same lyric for the same seed;
   **S1–S8** scat (pseudo-words of the language's syllables). An empty TEXT sings W1.
 - **Automatable**: with LANG on the EDIT values read **POS THEME ARTIC SHIFT | BUZZ BREATH Q LOOP**. **POS** (AUTO, or
@@ -1561,8 +1560,8 @@ The HUD skin, fixed (every finding of the HUD audit), and a faster screen there.
   skin: the language line small and grey, square phoneme chips and a square chart frame, WORDS' breadcrumb
   **EDIT · WORDS**; the LYRIC typing screen is the NAME screen's.
 - **Presets** (appended, every sound before keeps its number): CANTOR ES, CANTORA ES, SINGER EN, UTA JA, WORD CHOIR,
-  SCAT EN, ROBOT EN, WHISPER JA.
-- **Tests**: tests/voice_test.c (40 Spanish words and 21 Japanese ones against their expected phonemes and
+  SCAT EN, ROBOT EN, WHISPER JA, BURZUM NO (the ES / JA sounds now sing NO).
+- **Tests**: tests/voice_test.c (English and Norwegian words against their expected phonemes and
   syllables, the English dictionary, every bank word's syllables, the generator's determinism and phrase lengths, the
   vowels' F1 / F2, *s sh f* bands and levels, a plosive's closure and burst, no click at syllable changes, DC, clipping
   at the corners, notes / ties / "-" / POS / LOOP with the sequencer, LANG OFF bit for bit), the lyrics' project round

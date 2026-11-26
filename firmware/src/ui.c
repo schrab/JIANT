@@ -1225,7 +1225,7 @@ static __attribute__((noinline)) uint32_t lyric_pick(char *label)
         for(i=a;i<b&&m<19u;i++) word[m++]=txt[i];word[m]=0;
         if(mel) ns=1;
         else sy_word((uint32_t)clamp(TSEL->p[P_VLANG],1,LG_N-1),nw,
-                     sy_norm_lang((uint32_t)TSEL->p[P_VLANG],word,m,nw,sizeof nw),ph,&ns);
+                     sy_norm(word,m,nw,sizeof nw),ph,&ns);
         uint32_t na,nb,nmel;
         if(w++>=lyric_word || !sy_tok(txt,b,&na,&nb,&nmel)) {
             lyric_word=(uint8_t)(w-1u);
@@ -1586,7 +1586,7 @@ static void apply_preset_to(track_t *t, uint32_t pi)
         t->p[P_LRTRG] = e == &ENG_DRUM ? km : 1;
     if (e == &ENG_FORMANT) {                          /* (0.8.5) VOICE's words: LANG, LYRIC (0: its vowels) */
         uint32_t xl = e->presets[pi].xp & 7u;
-        t->p[P_VLANG] = (int16_t)(xl == 4u ? LG_NO : xl);
+        t->p[P_VLANG] = (int16_t)(xl > LG_NO ? LG_NO : xl);
         t->p[P_VLYR] = (int16_t)(e->presets[pi].xp >> 3);
         t->p[P_VCONS] = 127;                            /* (V10.6y) CONS 100 % (a DRUM part's lane level before) */
     } else if (e->presets[pi].xp) {                   /* (V10.36) BREATHE: the LFO DRIFT, slow, on the filter */
