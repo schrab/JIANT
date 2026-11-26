@@ -228,7 +228,7 @@ static int lyrics(void)
 {
     int bad=0,ok=1;uint32_t i,n;
     ui_power_on();track_t *t=&trk[0];set_engine_of(t,ENGI_VOICE);t->engine=t->eng_req;song.sel=0;
-    lyr_set(0,"hola luna.");t->p[P_VLANG]=LG_ES;t->p[P_VLYR]=LYR_FIXED;t->p[P_E0]=2;
+    lyr_set(0,"hola luna.");t->p[P_VLANG]=LG_NO;t->p[P_VLYR]=LYR_FIXED;t->p[P_E0]=2;
     sing[0].pend=1;sing_block(t);sing_t first=sing[0];
     sing[0].pend=1;sing_block(t);
     ok=sing[0].wsy==first.wsy&&sing[0].nsy==first.nsy&&!strcmp(sing[0].w,first.w);

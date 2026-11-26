@@ -3,9 +3,8 @@
 /* VOICE words test (src/sing.c, src/eng_formant.c, JIANT 0.8.5) on the host, through hostsim.c as regress.c.
  *   build/host/voice_test [DEMODIR]          (run_tests.sh: build/voice_demo)
  *   build/host/voice_test --g2p LANG WORDS..  (prints each word's phonemes, | a syllable)
- * 1. reading: Spanish and Norwegian by rules (a word list: phonemes and syllables), Japanese romaji -> morae, English
- *    through the dictionary (and its letter rules for a word it lacks); every bank word's syllables as gen_lyrics.py
- *    counted them.
+ * 1. reading: English through the dictionary (and its letter rules for a word it lacks) and Norwegian by rules (a word
+ *    list: phonemes and syllables); every bank word's syllables as gen_lyrics.py counted them.
  * 2. the generator: the same phrase for the same seed, another for another seed, as many syllables as the pattern's
  *    notes, every word a real one of the bank.
  * 3. the sound: the vowels' formants (an LPC-free peak pick on the spectrum of a held vowel) inside their ranges;
@@ -15,7 +14,7 @@
  * 4. the lyric: notes sing the next syllable, a TIE holds it, "-" holds the vowel, POS jumps, LOOP restarts; a
  *    project round trip with lyrics, a project without them loads none.
  * 5. cost: host ns per sample and voice, vowels against words (the counts: tests/cpu_vg.c eng/VOICE.*).
- * 6. demos into DEMODIR: Spanish, English, Japanese phrases on a melody, the dice's lyrics, every word preset. */
+ * 6. demos into DEMODIR: English and Norwegian phrases on a melody, the dice's lyrics, every word preset. */
 #define main hostsim_main
 #define LY_EN_REF 1              /* (0.9.0) felucca_lyrics.h: the dictionary's words as text too (the lookup's check) */
 #include "hostsim.c"
@@ -228,7 +227,7 @@ static void check_cache(void)
     sing_init();
     for (k = 0; k < LYB_N; k++) {
         char word[20];
-        const char *q = k < LYB_SCAT ? ly_word(&LY_BANK[1], k, word) : k < LYB_N - 1u ? SCAT_EN[k - LYB_SCAT] : VOCABLE[1];
+        const char *q = k < LYB_SCAT ? ly_word(&LY_BANK[0], k, word) : k < LYB_N - 1u ? SCAT_EN[k - LYB_SCAT] : VOCABLE[0];
         if (!lyb_at[k]) miss++;
         else {
             bad_b += !entry_is(&lyb_ph[lyb_at[k] - 1u], q, 64u);
@@ -357,25 +356,6 @@ static void vrender(double *y, uint32_t n)
 
 static void check_reading(void)
 {
-    static const char *const ES[][2] = {
-        {"corazon", "|k o |r a |s o n"}, {"guerra", "|g e |rr a"}, {"queso", "|k e |s o"}, {"cielo", "|s y e |l o"},
-        {"ciudad", "|s y u |d a d"}, {"playa", "|p l a |y a"}, {"estrella", "|e s |t r e |y a"}, {"honra", "|o n |rr a"},
-        {"israel", "|i s |rr a |e l"}, {"muy", "|m w i"}, {"hoy", "|o i"}, {"agua", "|a |g w a"}, {"gente", "|x e n |t e"},
-        {"jardin", "|x a r |d i n"}, {"extranyo", "|e k s |t r a |ny o"}, {"perro", "|p e |rr o"}, {"pero", "|p e |r o"},
-        {"caer", "|k a |e r"}, {"leon", "|l e |o n"}, {"cuidado", "|k w i |d a |d o"}, {"hielo", "|y e |l o"},
-        {"chocolate", "|ch o |k o |l a |t e"}, {"vaca", "|b a |k a"}, {"zapato", "|s a |p a |t o"}, {"llave", "|y a |b e"},
-        {"atlas", "|a |t l a s"}, {"obstaculo", "|o b s |t a |k u |l o"}, {"aire", "|a i |r e"}, {"auto", "|a u |t o"},
-        {"y", "|i"}, {"rey", "|rr e i"}, {"ninyo", "|n i |ny o"}, {"Quiero", "|k y e |r o"}, {"guitarra", "|g i |t a |rr a"},
-        {"pinguino", "|p i n |g i |n o"}, {"xilofono", "|k s i |l o |f o |n o"}, {"mi_amor", "|m y a |m o r"},
-        {"alrededor", "|a l |rr e |d e |d o r"}, {"pajaro", "|p a |x a |r o"}, {"cantar", "|k a n |t a r"},
-    };
-    static const char *const JA[][2] = {
-        {"konnichiwa", "|k o |N |n i |ch i |w a"}, {"arigatou", "|a |r i |g a |t o |o"}, {"kitto", "|k i |_ t o"},
-        {"shinjiru", "|sh i |N |j i |r u"}, {"tsunami", "|ts u |n a |m i"}, {"kyou", "|k y o |o"}, {"fuji", "|f u |j i"},
-        {"wo", "|o"}, {"hito", "|h i |t o"}, {"sayonara", "|s a |y o |n a |r a"}, {"si", "|sh i"}, {"ti", "|ch i"},
-        {"tu", "|ts u"}, {"hu", "|f u"}, {"chotto", "|ch o |_ t o"}, {"matcha", "|m a |_ ch a"}, {"kanji", "|k a |N |j i"},
-        {"onna", "|o |N |n a"}, {"desu", "|d e |s u"}, {"ryokou", "|r y o |k o |o"}, {"Sakura", "|s a |k u |r a"},
-    };
     static const char *const EN[][2] = {
         {"love", "|l ah v"}, {"my", "|m aa ih"}, {"time", "|t aa ih m"}, {"beautiful", "|b y u |t ax |f ax l"},
         {"water", "|w ao |t er"}, {"strong", "|s t r ao ng"}, {"the", "|dh ax"}, {"Dont", "|d o uh n t"},
@@ -386,20 +366,6 @@ static void check_reading(void)
     };
     char b[256], what[160];
     uint32_t k, ok = 1, l, n;
-    for (k = 0; k < NELEM(ES); k++) {
-        g2p_str(LG_ES, ES[k][0], b, sizeof b);
-        if (strcmp(b, ES[k][1])) { printf("voice:   ES %-12s %s (want %s)\n", ES[k][0], b, ES[k][1]); ok = 0; }
-    }
-    snprintf(what, sizeof what, "Spanish by rules: %u words, their phonemes and syllables (seseo, ll y, rr, diphthongs, clusters)",
-             (unsigned)NELEM(ES));
-    check(what, ok);
-    for (k = 0, ok = 1; k < NELEM(JA); k++) {
-        g2p_str(LG_JA, JA[k][0], b, sizeof b);
-        if (strcmp(b, JA[k][1])) { printf("voice:   JA %-12s %s (want %s)\n", JA[k][0], b, JA[k][1]); ok = 0; }
-    }
-    snprintf(what, sizeof what, "Japanese romaji -> morae: %u words (moraic n, doubled consonants, shi chi tsu fu, kunrei, ou)",
-             (unsigned)NELEM(JA));
-    check(what, ok);
     for (k = 0, ok = 1; k < NELEM(EN); k++) {
         g2p_str(LG_EN, EN[k][0], b, sizeof b);
         if (strcmp(b, EN[k][1])) { printf("voice:   EN %-12s %s (want %s)\n", EN[k][0], b, EN[k][1]); ok = 0; }
@@ -517,12 +483,12 @@ static void check_reading(void)
               "the generator's too; with it back as before", ok && strcmp(rb, b) && sy_en_find("love", 4, ph) > 0);
     }
     {   /* the banks: every word's syllables as gen_lyrics.py counted them (the generator fits phrases by them) */
-        static const char *const LN[5] = {"", "ES", "EN", "JA", "NO"};
+        static const char *const LN[3] = {"", "EN", "NO"};
         uint32_t bad_w = 0, tot = 0;
-        for (l = LG_ES; l <= LG_JA; l++) {
-            const char *const *ref=l==LG_ES?LY_ES_BANK_REF_W:l==LG_EN?LY_EN_BANK_REF_W:LY_JA_BANK_REF_W;
+        for (l = LG_EN; l <= LG_NO; l++) {
+            const char *const *ref = l == LG_EN ? LY_EN_BANK_REF_W : LY_NO_BANK_REF_W;
             const ly_bank_t *bk = &LY_BANK[l - 1u];
-            uint32_t nwds = l == LG_ES ? LY_ES_NW : l == LG_EN ? LY_EN_NW : LY_JA_NW;
+            uint32_t nwds = l == LG_EN ? LY_EN_NW : LY_NO_NW;
             for (k = 0; k < nwds; k++) {
                 uint8_t ph[SW_MAX];
                 char nw2[24];
@@ -537,24 +503,9 @@ static void check_reading(void)
                 }
             }
         }
-        {   /* NO has its own word list; no separate reference array, so check it the same way without one */
-            const ly_bank_t *bk = &LY_BANK[3];
-            for (k = 0; k < LY_NO_NW; k++) {
-                uint8_t ph[SW_MAX];
-                char nw2[24];
-                char word[20];
-                const char *w = ly_word(bk, k, word);
-                (void)sy_word(LG_NO, nw2, sy_norm(w, (uint32_t)strlen(w), nw2, sizeof nw2), ph, &n);
-                tot++;
-                if (n != (ly_meta(bk,k) & 7u)) {
-                    if (bad_w++ < 8u)
-                        printf("voice:   NO %s: %u syllables here, %u in the bank\n", w, n, ly_meta(bk,k) & 7u);
-                }
-            }
-        }
         snprintf(what, sizeof what,
-                 "the banks: all %u words' syllables as the generator counts them (ES %u EN %u JA %u NO %u words)",
-                 tot, (unsigned)LY_ES_NW, (unsigned)LY_EN_NW, (unsigned)LY_JA_NW, (unsigned)LY_NO_NW);
+                 "the banks: all %u words' syllables as the generator counts them (EN %u NO %u words)",
+                 tot, (unsigned)LY_EN_NW, (unsigned)LY_NO_NW);
         check_dict(what, !bad_w);
     }
 }
@@ -603,11 +554,13 @@ static int bank_cat_has(uint32_t lang, uint32_t cat, const char *w)
 {
     const ly_bank_t *bk = &LY_BANK[lang - 1u];
     uint32_t t, k;
-    for (t = 0; t < 9u; t++) {
-        uint32_t st = bk->grp[t][cat][0], n = bk->grp[t][cat][1];
-        for (k = 0; k < n; k++)
-            if (!strcmp(ly_word(bk, st + k), w))
+    for (t = 0; t < TH_FN; t++) {
+        uint32_t st = bk->grp[t][cat] & 511u, n = bk->grp[t][cat] >> 9;
+        for (k = 0; k < n; k++) {
+            char word[20];
+            if (!strcmp(ly_word(bk, st + k, word), w))
                 return 1;
+        }
     }
     return 0;
 }
@@ -615,8 +568,8 @@ static void check_generator(void)
 {
     char a[600], b[600], c[600], what[700];
     uint32_t ok, oks, l, s1, s2, s3;
-    static const char *const LN[5] = {"", "ES", "EN", "JA", "NO"};
-    for (l = LG_ES; l <= LG_NO; l++) {
+    static const char *const LN[3] = {"", "EN", "NO"};
+    for (l = LG_EN; l <= LG_NO; l++) {
         gen_text(l, 3, 4, 3, 7, a, sizeof a, &s1);
         gen_text(l, 3, 4, 3, 7, b, sizeof b, &s2);
         gen_text(l, 4, 4, 3, 7, c, sizeof c, &s3);
@@ -626,26 +579,25 @@ static void check_generator(void)
         if (!strcmp(LN[l], "EN")) check_dict(what, ok && oks); else check(what, ok && oks);
         printf("voice:   %s W3 ANY: %.160s\n", LN[l], a);
     }
-    gen_text(LG_ES, 1, 0, 2, 12, a, sizeof a, &s1);
-    gen_text(LG_ES, 1, 7, 2, 12, b, sizeof b, &s2);
+    gen_text(LG_NO, 1, 0, 2, 12, a, sizeof a, &s1);
+    gen_text(LG_NO, 1, 7, 2, 12, b, sizeof b, &s2);
     check("generator: another THEME, other words (LOVE against FIRE); 12-note phrases fit", strcmp(a, b) != 0 && s1 && s2);
-    printf("voice:   ES W1 LOVE: %.160s\n", a);
-    printf("voice:   ES W1 FIRE: %.160s\n", b);
-    gen_text(LG_JA, LYR_NW + 2u, 4, 2, 9, a, sizeof a, &s1);
+    printf("voice:   NO W1 LOVE: %.160s\n", a);
+    printf("voice:   NO W1 FIRE: %.160s\n", b);
+    gen_text(LG_NO, LYR_NW + 2u, 4, 2, 9, a, sizeof a, &s1);
     gen_text(LG_EN, LYR_NW + 1u, 4, 1, 9, b, sizeof b, &s2);
-    check("scat S2 JA / S1 EN: syllables of the language, phrases fit", s1 && s2 && a[0] && b[0]);
-    printf("voice:   JA S2: %.120s\n", a);
+    check("scat S2 NO / S1 EN: syllables of the language, phrases fit", s1 && s2 && a[0] && b[0]);
+    printf("voice:   NO S2: %.120s\n", a);
     printf("voice:   EN S1: %.120s\n", b);
     {   /* every word of W a real one: in the bank (or the vocable) */
         uint32_t k, w, bad_w = 0;
-        for (l = LG_ES; l <= LG_NO; l++)
+        for (l = LG_EN; l <= LG_NO; l++)
             for (k = 1; k <= 4u; k++) {
                 char *p, *q;
                 gen_text(l, k, 4, 4, 11, a, sizeof a, &s1);
                 for (p = a; *p; p = q) {
                     const ly_bank_t *bk = &LY_BANK[l - 1u];
-                    uint32_t nwds = l == LG_ES ? LY_ES_NW : l == LG_EN ? LY_EN_NW : l == LG_JA ? LY_JA_NW : LY_NO_NW,
-                             found = 0, n;
+                    uint32_t nwds = l == LG_EN ? LY_EN_NW : LY_NO_NW, found = 0, n;
                     while (*p == ' ' || *p == '/') p++;
                     for (q = p; *q && *q != ' '; q++)
                         ;
@@ -654,14 +606,13 @@ static void check_generator(void)
                     for (w = 0; w < nwds && !found; w++) {
                         char word[20];
                         const char *t = ly_word(bk, w, word);
-                        found = strlen(t) == n && (!strncmp(t, p, n) ||
-                                                   (l == LG_ES && !strncmp(t, p, n - 1u) && t[n - 1u] == 'o' && p[n - 1u] == 'a'));
+                        found = strlen(t) == n && !strncmp(t, p, n);
                     }
-                    found |= (n == 2u && (!strncmp(p, "la", 2) || !strncmp(p, "oh", 2) || !strncmp(p, "ra", 2)));
+                    found |= (n == 2u && !strncmp(p, "oh", 2));
                     bad_w += !found;
                 }
             }
-        check("generator: every word of W1..W4 in ES EN JA NO a bank word (the adjective's -a after a feminine noun)", !bad_w);
+        check("generator: every word of W1..W4 in EN NO a bank word (or the vocable)", !bad_w);
     }
     {   /* Norwegian: each theme's rows give words; the design's pinned words in their categories */
         uint32_t t, whole = 0;
@@ -700,17 +651,17 @@ static void check_sound(void)
     int32_t pi = preset_of("CANTOR ES");
     for (k = 0; k < NELEM(V); k++) {                     /* whispered: the noise draws the cascade's response */
         double f1, f2;
-        sustain(pi, LG_ES, V[k].t, 127, y, n);
+        sustain(pi, LG_NO, V[k].t, 127, y, n);
         spectrum(y, n, P);
         f1 = peak_in(P, 200, 950, 4);
         f2 = peak_in(P, f1 + 250, 2800, 4);
         printf("voice:   vowel %s: F1 %4.0f F2 %4.0f Hz\n", V[k].t, f1, f2);
         ok &= f1 >= V[k].f1lo && f1 <= V[k].f1hi && f2 >= V[k].f2lo && f2 <= V[k].f2hi;
     }
-    check("vowels a e i o u: F1 / F2 of the sound in their ranges (Spanish, adult male, Quilis / Hillenbrand)", ok);
+    check("vowels a e i o u: F1 / F2 of the sound in their ranges (Norwegian, adult male)", ok);
     {   /* sung (voiced) a: its spectral envelope's F1 near the table too */
         double f1;
-        sustain(pi, LG_ES, "a", 0, y, n);
+        sustain(pi, LG_NO, "a", 0, y, n);
         spectrum(y, n, P);
         f1 = peak_in(P, 400, 1000, 1);
         ok = f1 > 600 && f1 < 900;
@@ -719,7 +670,7 @@ static void check_sound(void)
     }
     {   /* fricatives: s high, sh lower, f weak and broad */
         double cs, ps, csh, psh, rs, rsh, rf, rv;
-        vsetup(pi, LG_ES, "sa");
+        vsetup(pi, LG_NO, "sa");
         trk_note_on(&trk[0], 60, 100);
         vrender(y, FS / 2);
         spectrum(y + (uint32_t)(0.015 * FS), (uint32_t)(0.05 * FS), P);
@@ -727,7 +678,7 @@ static void check_sound(void)
         ps = peak_in(P, 1500, 9000, 6);
         rs = rms(y, (uint32_t)(0.015 * FS), (uint32_t)(0.065 * FS));
         rv = rms(y, (uint32_t)(0.2 * FS), (uint32_t)(0.4 * FS));
-        vsetup(preset_of("UTA JA"), LG_JA, "sha");
+        vsetup(preset_of("UTA JA"), LG_NO, "sjaa");
         trk[0].p[P_E3] = 0;
         trk_note_on(&trk[0], 60, 100);
         vrender(y, FS / 2);
@@ -735,7 +686,7 @@ static void check_sound(void)
         csh = centroid(P);
         psh = peak_in(P, 1500, 9000, 6);
         rsh = rms(y, (uint32_t)(0.015 * FS), (uint32_t)(0.07 * FS));
-        vsetup(pi, LG_ES, "fa");
+        vsetup(pi, LG_NO, "fa");
         trk_note_on(&trk[0], 60, 100);
         vrender(y, FS / 2);
         rf = rms(y, (uint32_t)(0.015 * FS), (uint32_t)(0.065 * FS));
@@ -748,7 +699,7 @@ static void check_sound(void)
     {   /* plosives: a closure (silence), a burst, the vowel */
         uint32_t i, cl = 0, bu = 0, frame = FS / 1000u;
         double rv, rmax = 0;
-        vsetup(pi, LG_ES, "ta");
+        vsetup(pi, LG_NO, "ta");
         trk_note_on(&trk[0], 60, 100);
         vrender(y, FS / 2);
         rv = rms(y, (uint32_t)(0.2 * FS), (uint32_t)(0.4 * FS));
@@ -764,11 +715,11 @@ static void check_sound(void)
         check(what, cl >= 25u && cl <= 70u && bu >= 25u && bu <= 80u);
     }
     {   /* no click: legato syllables (vowels, nasals, liquids), the sample-to-sample jump never far past the steady one */
-        static const char *const T[] = {"a e i o u a", "mama nana lala", "ya wa ya wa"};
+        static const char *const T[] = {"a e i o u a", "mama nana lala", "jaja jaja"};
         uint32_t t, i, worst_ok = 1;
         for (t = 0; t < NELEM(T); t++) {
             double dmax = 0, dsteady = 0;
-            vsetup(preset_of("CANTOR ES"), LG_ES, T[t]);
+            vsetup(preset_of("CANTOR ES"), LG_NO, T[t]);
             trk[0].p[P_VOICE] = V_LEGATO;
             for (k = 0; k < 6u; k++) {
                 static double z[FS / 4];
@@ -865,7 +816,7 @@ static void check_singer(void)
          * 14 .. 24 dB under the vowel (0.9.7: 14.6), its band ~6 kHz (0.9.7: 7.1) with little past 12 kHz (band-passed) */
         double env[60], top, rv, rs, cs, hi, mid, step = 0;
         uint32_t t10 = 0, t90 = 0;
-        vsetup(pi, LG_ES, "sa");
+        vsetup(pi, LG_NO, "sa");
         trk_note_on(&trk[0], 60, 100);
         vrender(y, FS / 2);
         for (k = 0; k < 60u; k++)
@@ -899,7 +850,7 @@ static void check_singer(void)
     }
     {   /* sh: lower, 2 .. 4 kHz, no harsher onset than s */
         double cs, lo, hi;
-        vsetup(preset_of("UTA JA"), LG_JA, "sha");
+        vsetup(preset_of("UTA JA"), LG_NO, "sjaa");
         trk[0].p[P_E3] = 0;
         trk_note_on(&trk[0], 60, 100);
         vrender(y, FS / 2);
@@ -920,7 +871,7 @@ static void check_singer(void)
         static const snt_t NL[] = {{60, 2, 0}, {62, 2, 0}, {64, 2, 0}, {65, 2, 0}, {67, 4, 0}};
         double worst = 0, dip = 0;
         uint32_t nj = 0;
-        vsetup(pi, LG_ES, "sus suenyos son sonidos suaves");
+        vsetup(pi, LG_NO, "sus suenyos son sonidos suaves");
         trk[0].p[P_ATK] = ENG_FORMANT.presets[pi].env[0];   /* (the preset's envelope, as played) */
         trk[0].p[P_SUS] = ENG_FORMANT.presets[pi].env[2];
         n = sing_notes(NT, NELEM(NT), y, FS * 8u, nsy, 0);
@@ -940,7 +891,7 @@ static void check_singer(void)
                 worst = near / p99;
             nj++;
         }
-        vsetup(pi, LG_ES, "la le li lo lu");                /* a syllable's vowel into the next note's l */
+        vsetup(pi, LG_NO, "la le li lo lu");                /* a syllable's vowel into the next note's l */
         trk[0].p[P_ATK] = ENG_FORMANT.presets[pi].env[0];
         trk[0].p[P_SUS] = ENG_FORMANT.presets[pi].env[2];
         n = sing_notes(NL, NELEM(NL), y, FS * 6u, nsy, 0);
@@ -965,7 +916,7 @@ static void check_singer(void)
         uint32_t a = 0, b = 0, mono = 1, bigstep = 0, okf = 1;
         int32_t f1a = 0, f1b = 0;
         double q25, q75, jmax = 0;
-        vsetup(preset_of("CANTORA ES"), LG_ES, "ah -");
+        vsetup(preset_of("CANTORA ES"), LG_NO, "ah -");
         trk[0].p[P_GLIDE] = 36;
         trk[0].p[P_GLMODE] = 1;
         trk[0].p[P_E3] = 0;
@@ -996,7 +947,7 @@ static void check_singer(void)
             }
         }
         {   /* the vowel's targets held over the glide (a melisma: no syllable moves) */
-            vsetup(preset_of("CANTORA ES"), LG_ES, "ah -");
+            vsetup(preset_of("CANTORA ES"), LG_NO, "ah -");
             trk[0].p[P_GLIDE] = 36;
             trk[0].p[P_GLMODE] = 1;
             trk_note_on(&trk[0], 57, 100);
@@ -1020,7 +971,7 @@ static void check_singer(void)
                     q75 <= 0.92 && jmax < 0.004 * CTL / 32 && okf && f1b > f1a);
         {   /* GLIDE 0, words, legato: a singer's ~60 ms */
             static const snt_t GW[] = {{60, 4, 1}, {64, 4, 0}};
-            vsetup(preset_of("CANTOR ES"), LG_ES, "la la");
+            vsetup(preset_of("CANTOR ES"), LG_NO, "la la");
             n = sing_notes(GW, NELEM(GW), y, FS * 3u, nsy, pq);
             for (k = 1, a = 0; k < n / CTL && !a; k++)
                 if (pq[k] != pq[k - 1u] && pq[k - 1u])
@@ -1038,7 +989,7 @@ static void check_singer(void)
         for (r = 0; r < 2u; r++) {
             double c[240], mean = 0, lo = 1e9, hi = -1e9, early = 0, rate;
             uint32_t m = 0, zc = 0;
-            vsetup(preset_of(r ? "ROBOT EN" : "CANTOR ES"), LG_ES, "a");
+            vsetup(preset_of(r ? "ROBOT EN" : "CANTOR ES"), LG_NO, "a");
             trk[0].p[P_E5] = 0;                          /* (no breath: a clean F0) */
             trk_note_on(&trk[0], 60, 100);
             vrender(y, (uint32_t)(2.4 * FS));
@@ -1120,7 +1071,7 @@ static void check_presets(void)
         static const int16_t C[4][3] = {{127, 127, 0}, {0, 127, 127}, {127, 0, 0}, {127, 127, 127}};
         uint32_t c, i, j;
         for (c = 0; c < 4u; c++) {
-            vsetup(preset_of("WORD CHOIR"), LG_ES, "sha cha ta pa ka ssss");
+            vsetup(preset_of("WORD CHOIR"), LG_NO, "sjaa kjaa ta pa ka ssss");
             trk[0].p[P_E4] = C[c][0]; trk[0].p[P_E6] = C[c][1]; trk[0].p[P_E5] = C[c][2];
             trk[0].p[P_LEVEL] = 127;
             trk[0].p[P_VOICE] = V_POLY;
@@ -1141,7 +1092,7 @@ static void check_presets(void)
             check(what, okc);
         }
     }
-    {   /* (NO) the preset appended after all the old ones, and LANG 4 as a name */
+    {   /* (NO) the preset appended after all the old ones, and LANG 2 as a name */
         char what[160], nm[8]; const char *u;
         int32_t pi = preset_of("BURZUM NO");
         snprintf(what, sizeof what, "BURZUM NO appended last (preset %d = npresets - 1)", pi);
@@ -1149,8 +1100,8 @@ static void check_presets(void)
         host_preset(&trk[0], eng_voice(), (uint32_t)pi);
         check("BURZUM NO picks LANG NO and LYRIC W1", trk[0].p[P_VLANG] == LG_NO && trk[0].p[P_VLYR] == 1);
         param_format(&VLANG_DESC, LG_NO, nm, &u);
-        snprintf(what, sizeof what, "LANG 4 reads %s, one turn from JA to NO", nm);
-        check(what, !strcmp(nm, "NO") && param_turn(&VLANG_DESC, LG_JA, 1) == LG_NO);
+        snprintf(what, sizeof what, "LANG 2 reads %s, one turn from EN to NO", nm);
+        check(what, !strcmp(nm, "NO") && param_turn(&VLANG_DESC, LG_EN, 1) == LG_NO);
     }
 }
 
@@ -1159,7 +1110,7 @@ static void check_lyric(void)
 {
     static const char *const W[4] = {"la", "le", "li", "lo"};
     uint32_t k, ok = 1;
-    vsetup(preset_of("CANTOR ES"), LG_ES, "la le, li lo! ma");
+    vsetup(preset_of("CANTOR ES"), LG_NO, "la le, li lo! ma");
     for (k = 0; k < 4u; k++) {
         const sing_t *s = sing_view(&trk[0]);
         trk_note_on(&trk[0], 60, 100);
@@ -1183,7 +1134,7 @@ static void check_lyric(void)
     }
     {   /* "-": the vowel again, no consonant */
         const sing_t *s;
-        vsetup(preset_of("CANTOR ES"), LG_ES, "sol - mar");
+        vsetup(preset_of("CANTOR ES"), LG_NO, "sol - mar");
         s = sing_view(&trk[0]);
         trk_note_on(&trk[0], 60, 100); vrender(0, FS / 5); trk_note_off(&trk[0], 60); vrender(0, FS / 50);
         trk_note_on(&trk[0], 62, 100); vrender(0, FS / 50);
@@ -1196,7 +1147,7 @@ static void check_lyric(void)
     }
     {   /* POS: a syllable of the lyric, as it changes */
         const sing_t *s;
-        vsetup(preset_of("CANTOR ES"), LG_ES, "uno dos tres cuatro");
+        vsetup(preset_of("CANTOR ES"), LG_NO, "uno dos tres cuatro");
         s = sing_view(&trk[0]);
         trk[0].p[P_E0] = 4;                              /* the 4th syllable: tres */
         trk_note_on(&trk[0], 60, 100); vrender(0, FS / 10); trk_note_off(&trk[0], 60); vrender(0, FS / 20);
@@ -1214,7 +1165,7 @@ static void check_lyric(void)
     {   /* an empty TEXT sings the dice's words; LANG OFF after words: the vowels as fresh */
         static double y1[FS / 2], y2[FS / 2];
         const sing_t *s;
-        vsetup(preset_of("CANTOR ES"), LG_ES, "");
+        vsetup(preset_of("CANTOR ES"), LG_NO, "");
         s = sing_view(&trk[0]);
         trk_note_on(&trk[0], 60, 100); vrender(0, FS / 10);
         ok = s->w[0] && s->nsy == 1u;
@@ -1222,7 +1173,7 @@ static void check_lyric(void)
         vsetup(preset_of("VOX LEAD"), 0, "");
         trk_note_on(&trk[0], 60, 100);
         vrender(y1, FS / 2);
-        vsetup(preset_of("CANTOR ES"), LG_ES, "sha la");
+        vsetup(preset_of("CANTOR ES"), LG_NO, "sjaa la");
         trk_note_on(&trk[0], 60, 100); vrender(0, FS / 3); trk_note_off(&trk[0], 60); vrender(0, FS);
         trk[0].p[P_VLANG] = 0;
         host_preset(&trk[0], eng_voice(), (uint32_t)preset_of("VOX LEAD"));
@@ -1239,7 +1190,7 @@ static void check_lyric(void)
         for (loops = 0; loops < 2u; loops++) {
             const sing_t *s;
             uint16_t first[3];
-            vsetup(preset_of("CANTOR ES"), LG_ES, "la le li lo lu ma me mi mo mu");
+            vsetup(preset_of("CANTOR ES"), LG_NO, "la le li lo lu ma me mi mo mu");
             s = sing_view(&trk[0]);
             trk[0].p[P_E7] = loops ? 0 : 30;              /* LOOP 1 (30: the second name), FREE */
             trk[0].p[P_SLEN] = 4;
@@ -1341,7 +1292,7 @@ static void check_cost(void)
     t0 = now_ns();
     vrender(y, FS);
     t1 = now_ns();
-    vsetup(preset_of("CANTOR ES"), LG_ES, "la noche es azul y el mar canta para ti");
+    vsetup(preset_of("CANTOR ES"), LG_NO, "la noche es azul y el mar canta para ti");
     trk[0].p[P_VOICE] = V_POLY;
     for (j = 0; j < 4u; j++) trk_note_on(&trk[0], 60 + j * 3u, 100);
     t2 = now_ns();
@@ -1365,7 +1316,7 @@ static uint32_t cons_raw(uint32_t pct)                   /* the stored value nea
 static uint32_t cons_blocks(uint32_t raw, uint32_t ph)  /* "sa" at CONS raw: the blocks phoneme ph sounds */
 {
     uint32_t b, n = 0;
-    vsetup(preset_of("CANTOR ES"), LG_ES, "sa");
+    vsetup(preset_of("CANTOR ES"), LG_NO, "sa");
     trk[0].p[P_VCONS] = (int16_t)raw;
     trk_note_on(&trk[0], 60, 100);
     for (b = 0; b < FS / CTL; b++) {
@@ -1385,7 +1336,7 @@ static void check_level_cons(void)
     for (k = 0; k < 6u; k++)
         for (j = 0; j < 2u; j++) {
             double s = 0, r;
-            vsetup(preset_of(k & 1u ? "CANTOR ES" : "INIT VOWEL"), k & 1u ? LG_ES : 0u, k & 1u ? "a" : "");
+            vsetup(preset_of(k & 1u ? "CANTOR ES" : "INIT VOWEL"), k & 1u ? LG_NO : 0u, k & 1u ? "a" : "");
             trk[0].p[P_ATK] = 2;
             trk_note_on(&trk[0], NT[k >> 1], VL[j]);
             vrender(y, FS);
@@ -1404,7 +1355,7 @@ static void check_level_cons(void)
     snprintf(what, sizeof what, "level: an open A (vowels, sung) C3 .. C5 peaks %.2f (under full scale), RMS %.1f .. %.1f dB (ANALOG %.1f)",
              pk, lo, hi, ra);
     check(what, pk < 0.95 && hi < ra + 3 && lo > ra - 10);
-    vsetup(preset_of("CANTOR ES"), LG_ES, "sa");
+    vsetup(preset_of("CANTOR ES"), LG_NO, "sa");
     {
         const param_desc_t *d = track_desc(&trk[0], P_VCONS);
         uint32_t ok = d && str_eq(d->label, "CONS") && trk[0].p[P_VCONS] == 127 && vcons_q6(127) == 64u;
@@ -1431,27 +1382,22 @@ static void check_level_cons(void)
 /* --------------------------------------------------------------------------------------------------- demos --- */
 static void demos(const char *dir)
 {
-    /* Spanish: 14 syllables (la-no-che-es-a-zul-y-el-mar-can-ta-pa-ra-ti) on a G major line */
-    static const nt_t ES[] = {{67, 2}, {69, 2}, {71, 4}, {69, 2}, {67, 2}, {64, 4}, {62, 2}, {64, 2}, {67, 6}, {0, 2},
+    /* Norwegian: a 14-note line for a dice phrase */
+    static const nt_t NO[] = {{67, 2}, {69, 2}, {71, 4}, {69, 2}, {67, 2}, {64, 4}, {62, 2}, {64, 2}, {67, 6}, {0, 2},
                               {67, 2}, {69, 2}, {71, 2}, {72, 2}, {71, 4}, {67, 8}};
     /* English: "you are my sunshine, my only sunshine" (you-are-my-sun-shine-my-on-ly-sun-shine) */
     static const nt_t EN[] = {{55, 2}, {60, 2}, {62, 2}, {64, 6}, {64, 4}, {0, 2}, {64, 2}, {62, 2}, {64, 2}, {60, 6},
                               {60, 6}};
-    /* Japanese: "sakura sakura yayoi no sora wa" (sa-ku-ra sa-ku-ra ya-yo-i no so-ra wa) */
-    static const nt_t JA[] = {{69, 3}, {69, 3}, {71, 6}, {69, 3}, {69, 3}, {71, 6}, {69, 3}, {71, 3}, {72, 3}, {71, 3},
-                              {69, 3}, {71, 2}, {69, 2}, {65, 6}};
     /* the dice: 16 notes */
     static const nt_t RN[] = {{62, 2}, {64, 2}, {65, 2}, {67, 2}, {69, 3}, {67, 1}, {65, 2}, {64, 4}, {0, 2}, {62, 2},
                               {64, 2}, {65, 2}, {69, 2}, {67, 3}, {65, 1}, {64, 2}, {62, 6}};
     uint32_t k;
     char nm[64];
-    demo_wav(dir, "es_phrase", preset_of("CANTOR ES"), "la noche es azul y el mar canta para ti", ES, NELEM(ES));
-    demo_wav(dir, "es_phrase_cantora", preset_of("CANTORA ES"), "la noche es azul y el mar canta para ti", ES, NELEM(ES));
+    demo_wav(dir, "no_phrase", preset_of("CANTOR ES"), "", NO, NELEM(NO));
+    demo_wav(dir, "no_phrase_burzum", preset_of("BURZUM NO"), "", NO, NELEM(NO));
     demo_wav(dir, "en_phrase", preset_of("SINGER EN"), "you are my sunshine my only sunshine", EN, NELEM(EN));
-    demo_wav(dir, "ja_phrase", preset_of("UTA JA"), "sakura sakura yayoi no sora wa", JA, NELEM(JA));
-    demo_wav(dir, "rnd_es_W1", preset_of("CANTOR ES"), "", RN, NELEM(RN));
+    demo_wav(dir, "rnd_no_W1", preset_of("CANTOR ES"), "", RN, NELEM(RN));
     demo_wav(dir, "rnd_en_W3", preset_of("SINGER EN"), "", RN, NELEM(RN));
-    demo_wav(dir, "rnd_ja_W4", preset_of("UTA JA"), "", RN, NELEM(RN));
     demo_wav(dir, "rnd_en_scat_S1", preset_of("SCAT EN"), "", RN, NELEM(RN));
     stanza_demo_wav(dir, preset_of("BURZUM NO"), 3);     /* the four-line NO stanza, one line a pattern loop */
     for (k = 7; k < ENG_FORMANT.npresets; k++) {         /* every word preset, its own dice */
@@ -1493,7 +1439,7 @@ static void check_seek_cycles(void)
     for (ti = 0; ti < NTRK; ti++) {
         track_t *t = &trk[ti];
         host_preset(t, eng_voice(), 0);
-        for (lang = LG_ES; lang <= LG_JA; lang++)
+        for (lang = LG_EN; lang <= LG_NO; lang++)
             for (tx = 0; tx < NELEM(TEXT); tx++) {
                 lyr_set(ti, TEXT[tx]);
                 for (pos = 0; pos < 127u; pos++) {
@@ -1513,7 +1459,7 @@ static void check_seek_cycles(void)
     }
     /* Generated lyrics, including empty TEXT's generated fallback, retain the original walk. */
     lyr_set(0, "");
-    for (lang = LG_ES; lang <= LG_JA; lang++)
+    for (lang = LG_EN; lang <= LG_NO; lang++)
         for (lyr = 0; lyr < LYR_N; lyr++)
             for (pos = 0; pos < 127u; pos++) {
                 sing_t a, b;
@@ -1542,7 +1488,7 @@ static void check_theme(void)
     char nm[8], prev[8];
     const char *u;
     for (i = 0; i < 2u; i++) {
-        vsetup(0, LG_ES, "laaa");
+        vsetup(0, LG_NO, "laaa");
         trk[0].p[P_E1] = 0;
         trk_note_on(&trk[0], 60, 100);
         for (k = 0; k < FS; k += CTL) {
@@ -1574,7 +1520,7 @@ static void check_theme(void)
     {                                                    /* (0.9.17) between the detents: the blend */
         static char t8[2048], tv[2048];
         uint32_t s1, l, same = 1, diff = 1;
-        for (l = LG_ES; l <= LG_NO; l++) {
+        for (l = LG_EN; l <= LG_NO; l++) {
             gen_text(l, 1, 0, 6, 9, t8, sizeof t8, &s1);
             for (k = 0; k <= 8u; k += 4u) {              /* a name's low half: its words, bit for bit (projects) */
                 gen_text(l, 1, 0x100u + k, 6, 9, tv, sizeof tv, &s1);
@@ -1593,8 +1539,7 @@ static void check_theme(void)
 int main(int argc, char **argv)
 {
     if (argc > 2 && !strcmp(argv[1], "--g2p")) {
-        uint32_t lang = !strcmp(argv[2], "JA") ? LG_JA : !strcmp(argv[2], "EN") ? LG_EN :
-                        !strcmp(argv[2], "NO") ? LG_NO : LG_ES;
+        uint32_t lang = !strcmp(argv[2], "EN") ? LG_EN : LG_NO;
         int a;
         char b[256];
         for (a = 3; a < argc; a++) {

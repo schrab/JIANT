@@ -12825,14 +12825,14 @@ static int test_engvis(void)
         for (x = 1; x < NTRK; x++) trk[x].p[P_MUTE] = 1;
         song.sel = 0;
         set_engine_of(TSEL, 5);
-        TSEL->p[P_VLANG] = LG_ES;
+        TSEL->p[P_VLANG] = LG_NO;
         go_title("EDIT 1");
         for (k = 0; k < 3u; k++) {
             const phon_t *P = &PHON[PH3[k]];
             vxs.init = 0;
             for (f = 0; f < 24u; f++) {
                 memset(g, 0, sizeof *g);
-                g->lang = LG_ES; g->live = 1; g->np = 1; g->cd = 1; g->ph[0] = PH3[k]; g->st = 1;
+                g->lang = LG_NO; g->live = 1; g->np = 1; g->cd = 1; g->ph[0] = PH3[k]; g->st = 1;
                 g->f[0] = (int16_t)P->f1; g->f[1] = (int16_t)P->f2; g->gv = (int16_t)(P->av << 7);
                 TSEL->peak = 6500;
                 frame();

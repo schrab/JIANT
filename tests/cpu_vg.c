@@ -189,10 +189,9 @@ int main(void)
         snprintf(name, sizeof name, "eng/WEST.%s", i ? "TRI" : "HEAVY");
         vg_section(name);
     }
-    for (i = 0; i < 4u; i++) {                          /* (0.8.5; +NO) VOICE singing words (sing.c): 4 voices, a lyric */
-        static const struct { const char *lg, *pre, *lyr; } VL[4] = {
-            {"ES", "CANTOR ES", "construir estrellas"}, {"EN", "SINGER EN", "strength through the starlight"},
-            {"JA", "UTA JA", "sakura"}, {"NO", "BURZUM NO", "natt"} };
+    for (i = 0; i < 2u; i++) {                          /* (0.8.5; +NO) VOICE singing words (sing.c): 4 voices, a lyric */
+        static const struct { const char *lg, *pre, *lyr; } VL[2] = {
+            {"EN", "SINGER EN", "strength through the starlight"}, {"NO", "BURZUM NO", "natt"} };
 
         for (e = 0; e < NENGINES && ENGINES[e] != &ENG_FORMANT; e++)
             ;

@@ -393,12 +393,12 @@ int main(void)
                 memcpy(l1.lyr[k], LY[k], strlen(LY[k]));
                 nl += LY[k][0] != 0;
             }
-            l1.t[0].engine = 5; l1.t[0].p[P_VLANG] = LG_ES; l1.t[0].p[P_VLYR] = 0; l1.t[0].p[P_E0] = 3;
+            l1.t[0].engine = 5; l1.t[0].p[P_VLANG] = LG_NO; l1.t[0].p[P_VLYR] = 0; l1.t[0].p[P_E0] = 3;
             l1.sum = proj_sum(&l1);
             ok = proj_pack(&ls, &l1) && proj_import(&l2, &ls, sizeof ls);
             for (k = 0; k < NTRK; k++)
                 ok &= !memcmp(l2.lyr[k], l1.lyr[k], LYR_LEN);
-            ok &= !memcmp(l2.t, l1.t, sizeof l1.t) && l2.t[0].p[P_VLANG] == LG_ES && l2.t[0].p[P_E0] == 3;
+            ok &= !memcmp(l2.t, l1.t, sizeof l1.t) && l2.t[0].p[P_VLANG] == LG_NO && l2.t[0].p[P_E0] == 3;
             bad += check("0.8.5: lyrics round trip (four tracks, 63 characters, \"-\"), LANG and POS with the sound", ok);
             l2 = l1;
             memset(l2.lyr, 0, sizeof l2.lyr);

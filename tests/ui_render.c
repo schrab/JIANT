@@ -655,7 +655,7 @@ enum { S_HOME, S_HOME_IDLE, S_MESSAGE, S_MESSAGE_KEY, S_MESSAGE_NOFILE, S_PRESET
        S_SEQ_BAR, S_SEQ_BAR_DRUM,
        S_NAME_USER, S_NAME_TYPING, S_NAME_123, S_NAME_EMPTY, S_NAME_FULL, S_NAME_PLAYING, S_PROJECT_NAMED, S_SONG_NAMED,
        S_USER_FOOT,
-       S_WORDS, S_WORDS_EN, S_WORDS_JA, S_WORDS_EDIT, S_WORDS_NO, S_WORDS_OFF, S_NAME_LYRIC, S_NAME_LYRIC_LONG,
+       S_WORDS, S_WORDS_EN, S_WORDS_NO2, S_WORDS_EDIT, S_WORDS_NO, S_WORDS_OFF, S_NAME_LYRIC, S_NAME_LYRIC_LONG,
        S_ROLL_EMPTY, S_ROLL_ACID, S_ROLL_CHORDS, S_ROLL_TIES, S_ROLL_LEN32, S_ROLL_HIGH, S_ROLL_LOW, S_ROLL_WIDE, S_ROLL_PLAYING,
        S_ROLL_LOCKS, S_ROLL_LOCK_HELD, S_DRUM_LOCKS, S_DRUM_LOCK_HELD, S_MOTION_LOCKS, S_AUTO_LIST, S_AUTO_LIST_ADD, S_AUTO_LIST_DRUM, S_REC_LAYER, S_REC_LAYER_SET, S_REC_LAYER_SONG, S_MACRO_LAYER, S_MSEQ, S_DIST_PAGE, S_DLY2, S_REVERB2, S_CHORUS, S_MASTER, S_LFO_DEST, S_LFO2, S_LFO2_FREE,
        S_COUNTIN, S_COUNTIN2, S_MENU_AUDIO, S_HEAD_PLAY_REC, S_HEAD_REC_OTHER, S_HEAD_BPM_TURN, S_HEAD_BPM_LOCK,
@@ -891,9 +891,9 @@ static void vx_phon(uint32_t ph, int32_t peak)
     sing_t *g = &sing[song.sel];
     const phon_t *P = &PHON[ph];
     eng(ENGI_VOICE_UI);
-    TSEL->p[P_VLANG] = LG_ES;
+    TSEL->p[P_VLANG] = LG_NO;
     memset(g, 0, sizeof *g);
-    g->lang = LG_ES; g->live = 1; g->np = 1; g->nu = 0; g->cd = 1; g->i = 0; g->ph[0] = (uint8_t)ph; g->st = 1;
+    g->lang = LG_NO; g->live = 1; g->np = 1; g->nu = 0; g->cd = 1; g->i = 0; g->ph[0] = (uint8_t)ph; g->st = 1;
     g->f[0] = (int16_t)(P->f1 ? P->f1 : 500); g->f[1] = (int16_t)(P->f1 ? P->f2 : 1500); g->f[2] = (int16_t)(P->f1 ? P->f3 : 2500);
     g->gv = (int16_t)(P->av << 7); g->gf = (int16_t)(P->af << 7); g->ga = (int16_t)(P->cls == PC_ASP ? 14000 : 0);
     str_cpy(g->w, "voz", sizeof g->w);
@@ -1660,18 +1660,18 @@ static void setup(int s)
         break;
     }
     /* (0.8.5, NO) VOICE's words: EDIT > WORDS singing (TEXT, a consonant sounding; W3 in English; the dice in
-     * Japanese or Norwegian), EDIT 1 singing, WORDS with LANG OFF; the LYRIC typing screen (a short lyric; a long
+     * Norwegian), EDIT 1 singing, WORDS with LANG OFF; the LYRIC typing screen (a short lyric; a long
      * one, its window scrolled) */
-    case S_WORDS: case S_WORDS_EN: case S_WORDS_JA: case S_WORDS_EDIT: case S_WORDS_NO: {
-        static const char *const W[5][2] = {{"corazon", "la noche es azul y el mar canta para ti"}, {"sunshine", ""},
-                                            {"sakura", ""}, {"strength", "construir estrellas"},
+    case S_WORDS: case S_WORDS_EN: case S_WORDS_NO2: case S_WORDS_EDIT: case S_WORDS_NO: {
+        static const char *const W[5][2] = {{"hjarte", "natt over fjorden"}, {"sunshine", ""},
+                                            {"maane", ""}, {"strength", "styrke gjennom stjernene"},
                                             {"snoen", "snoen faller over fjorden"}};   /* a Norwegian lyric, in ASCII */
         static const uint8_t PH[5][4] = {{PH_S, PH_O, PH_N, 0}, {PH_SH, PH_AA, PH_IH, PH_N}, {PH_K, PH_UJ, 0, 0},
                                          {PH_S, PH_T, PH_RA, PH_EH}, {PH_S, PH_N, PH_O, PH_E}};
         uint32_t k = s - S_WORDS;
         sing_t *g = &sing[song.sel];
         eng(ENGI_VOICE_UI);
-        TSEL->p[P_VLANG] = (int16_t)(k == 1u ? LG_EN : k == 2u ? LG_JA : k == 4u ? LG_NO : LG_ES);
+        TSEL->p[P_VLANG] = (int16_t)(k == 1u ? LG_EN : LG_NO);
         TSEL->p[P_VLYR] = (int16_t)(k == 1u ? 3 : k == 2u ? 4 : 0);
         TSEL->p[P_E1] = (int16_t)(k == 1u ? 8 : 64);
         lyr_set(song.sel, W[k][1]);
@@ -1772,12 +1772,12 @@ static void setup(int s)
     case S_VX_KIT_MUTED: dx_mute_set(DXG_HAT | DXM_LANE(7)); vx_kit_scene(0x01u, 0); dx_ui_lane = 7; dx_ui_seen = last_note; go_title("SOUND 4"); break;
     case S_WORDS_OFF: eng(ENGI_VOICE_UI); TSEL->p[P_VLANG] = 0; go_page(GR_LYRIC); break;
     case S_NAME_LYRIC:
-        eng(ENGI_VOICE_UI); TSEL->p[P_VLANG] = LG_ES; lyr_set(song.sel, "LA NOCHE");
+        eng(ENGI_VOICE_UI); TSEL->p[P_VLANG] = LG_NO; lyr_set(song.sel, "NATT OVER FJORDEN");
         go_page(GR_LYRIC); name_open(NK_LYRIC, song.sel);
         break;
     case S_NAME_LYRIC_LONG:
-        eng(ENGI_VOICE_UI); TSEL->p[P_VLANG] = LG_JA; song.playing = 1;
-        lyr_set(song.sel, "SAKURA SAKURA YAYOI NO SORA WA MI WATASU KAGIRI KASUMI KA KUMO");
+        eng(ENGI_VOICE_UI); TSEL->p[P_VLANG] = LG_NO; song.playing = 1;
+        lyr_set(song.sel, "NATT OVER FJORDEN MAANEN SKINNER OVER SNOEN OG STJERNENE VAKNER");
         go_page(GR_LYRIC); name_open(NK_LYRIC, song.sel); nm.cur = 40; nm.key = 3; nm.tap = 1; nm.t = fm1_ms;
         break;
     /* (0.8.5) DRUM-X octaves: the grid's HIT as its modes (the hat on step 3 x4; the snare on step 5 GHOST, the hat
