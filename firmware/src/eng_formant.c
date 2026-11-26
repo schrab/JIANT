@@ -537,7 +537,7 @@ static const preset_t FORMANT_PRESETS[] = {
     {"BURZUM NO", {0, 32, 0, -5, 60, 70, 78, 0}, {20, 80, 110, 80}, 0, 1 | TAG(VOX), FX(0, 30, 40, 95), PAT(4), WORDS(LG_NO, 1)},
 };
 /* (V10.6i) the browsing order: to play, then the experiments, then INIT */
-static const uint8_t VOICE_ORDER[] = {0, 4, 1, 6, 2, 7, 8, 9, 10,   /* to play */
+static const uint8_t VOICE_ORDER[] = {0, 4, 1, 6, 2, 7, 8, 9, 10, 15, /* to play */
                                       11, 5, 12, 13, 14,            /* experiments */
                                       3};                           /* INIT */
 _Static_assert(sizeof VOICE_ORDER == NELEM(FORMANT_PRESETS), "VOICE's browsing order: every preset once");

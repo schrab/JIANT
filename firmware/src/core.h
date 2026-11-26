@@ -495,6 +495,7 @@ enum { LW_SIN, LW_TRI, LW_SAW, LW_SQR, LW_SH, LW_DRIFT };
 /* (V10.36) the other engines' xp: BREATHE, the pad drifting by itself: the LFO DRIFT on FILTER (flt 1..63), a little on
  * PITCH too (pit 1), over 16 bars (slow 1) else 4 (ui.c preset_load) */
 #define BREATHE(flt, pit, slow) .xp = (uint8_t)((flt) | (pit) << 6 | (slow) << 7)
+/* (p1, main 0.9.12, after Skiff by illuminus5) every factory preset's sound type, in the free bits of preset_t.mono (no
  * byte more; presets live in flash, nothing stored changes): PRESETS' LIST browses all engines' presets by it (ui.c
  * preset_in), the song generator's EXPLORE keeps a bass's sounds off the other roles by it (gen.c gen_sound) */
 enum { PT_NONE, PT_BASS, PT_LEAD, PT_PAD, PT_KEYS, PT_PLUCK, PT_BELL, PT_VOX, PT_DRUM, PT_FX, PT_N };
