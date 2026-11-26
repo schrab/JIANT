@@ -48,7 +48,7 @@
 #define FELUCCA_ID "FM-1_900"    /* package identity (build.py: the .fwsc marker string) */
 #endif
 #ifndef FELUCCA_VERSION
-#define FELUCCA_VERSION "v0.9.18" /* JIANT's (based on Felucca 1.1.5.1): the splash, the menu, the console, the editor */
+#define FELUCCA_VERSION "v10.8.48" /* JIANT V10.8.48: the splash, the menu, the console, the editor */
 #endif
 #ifndef FELUCCA_SMK_FLASH
 #define FELUCCA_SMK_FLASH 0      /* (SMK-37, docs/SMK37.md) 1: settings / projects / updates on the SMK's flash (its
