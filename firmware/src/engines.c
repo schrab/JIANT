@@ -130,6 +130,7 @@ static inline uint32_t eng_idx(uint32_t e) { return e < NENGINES ? e : 0u; }
  * NOISE DRUM ANIMAL. PROGRAM CHANGE numbers the sounds in this order too (ui.c midi_pc_poll) */
 static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
     ENGI_DRUM,                   /* DRUM (DRUM-X) */
+    ENGI_STRING,                 /* STRING (Karplus-Strong) — early so it is always reachable */
     ENGI_VOICE,                  /* VOICE */
     ENGI_ANIMAL,                 /* ANIMAL */
     ENGI_LOFI,                   /* LOFI */
@@ -137,9 +138,6 @@ static const uint8_t ENGINE_ORDER[NENG_SHOWN] = {
     ENGI_FM6,                    /* FM6 */
     ENGI_PHASE, ENGI_WHEEL,      /* PHASE WHEEL */
     ENGI_NOISE,                  /* NOISE */
-#if !FELUCCA_HOST_POWER
-    ENGI_STRING,                 /* STRING: after the rest, so the other PROGRAM CHANGE numbers stay */
-#endif
 #if FELUCCA_HOST_POWER
     ENGI_SAMPLE, ENGI_GRAIN,     /* (ports/) SAMPLE GRAIN: after the FM-1's, so PROGRAM CHANGE numbers them as before */
 #endif
