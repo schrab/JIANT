@@ -1132,7 +1132,7 @@ names them per engine):
 
 | id | label | values |
 | --- | --- | --- |
-| 61 | LANG | (`P_VLANG`, LOFI's RTRG slot) 0 OFF (VOICE as before, its vowels: bit for bit), 1 EN, 2 NO |
+| 61 | LANG | (`P_VLANG`, LOFI's RTRG slot) 0 OFF (VOICE as before, its vowels: bit for bit), 1 reserved (old ES; never a language), 2 EN, 3 NO |
 | 74 | LYRIC | (`P_VLYR`, DRUM's IMAGE slot) 0 TEXT (the track's lyric, below; empty: W1), 1..16 W1..W16 (words the dice puts together from the language's bank, a seed each), 17..24 S1..S8 (scat) |
 
 With LANG on, the device relabels VOICE's EDIT values (`DESC` sends the engine's own, VOWEL ..): E1 POS (0 AUTO: each

@@ -2,7 +2,7 @@
  * Copyright (C) 2026 Juan Ignacio Antonucci (Juan Jiant) */
 /* VOICE words (JIANT 0.8.5): the VOICE engine sings syllables, words and lyrics (included by eng_formant.c).
  *
- * LANG (EDIT > WORDS, P_VLANG: OFF EN NO; OFF is VOICE as before, its vowels) turns a VOICE track into a singer: each
+ * LANG (EDIT > WORDS, P_VLANG: OFF (reserved) EN NO; OFF is VOICE as before, its vowels) turns a VOICE track into a singer: each
  * note it starts sings the next syllable of its lyric (a held note holds the vowel; a TIE holds it on; the release
  * sings the syllable's last consonants). The lyric (LYRIC, P_VLYR): TEXT, the track's own (typed on the device, sent
  * by the editor, saved with the project: lyr_txt), or W1..W16, words the dice puts together from the language's bank
@@ -52,8 +52,10 @@ static volatile uint8_t ly_en_ok = 1;                  /* (the host: one image) 
 _Static_assert(PH_COUNT == 48, "sing.c PHON[]: one row a phoneme, in gen_lyrics.py's order");
 
 #define LYR_LEN 64u              /* a track's lyric: 63 characters and the 0 */
-enum { LG_OFF, LG_EN, LG_NO, LG_N };
-static const char *const N_LANG[] = {"OFF", "EN", "NO"};
+/* (NO) LANG 2 has meant EN in every released firmware: keep it. Slot 1 is the retired ES,
+ * reserved (shown "-", never selected as a language); the new Norwegian singing is 3. */
+enum { LG_OFF, LG_GONE_ES, LG_EN, LG_NO, LG_N };
+static const char *const N_LANG[] = {"OFF", "-", "EN", "NO"};
 #define LYR_NW 16u               /* W1..W16: words */
 #define LYR_NS 8u                /* S1..S8: scat */
 #define LYR_FIXED (1u + LYR_NW + LYR_NS)
@@ -445,8 +447,10 @@ static uint32_t sy_word(uint32_t lang, const char *w, uint32_t n, uint8_t *out, 
             return len;
         }
         m = sy_en_rules(w, n, tc, tk);
-    } else {
+    } else if(lang == LG_NO) {
         m = sy_no_tok(w, n, tc, tk);
+    } else {
+        m = sy_en_rules(w, n, tc, tk);   /* reserved/old LANG: EN, never NO */
     }
     return sy_syl(tc, tk, m, out, ns);
 }
@@ -474,8 +478,8 @@ typedef struct {
     const uint8_t *meta;
     const uint16_t (*grp)[6];
 } ly_bank_t;
-/* EN NO are the two banks, in LANG order (1..2) */
-#define ly_bank_idx(lang) ((lang) - 1u)
+/* EN (2) and NO (3) are the two banks; any other LANG falls back to EN's */
+#define ly_bank_idx(lang) ((lang) == LG_NO ? 1u : 0u)
 static uint32_t ly_char(const ly_bank_t *b, uint32_t bit)
 {
     uint32_t byte=bit>>3;
@@ -715,8 +719,8 @@ static uint32_t sy_gen_word(const track_t *t, sing_t *s, uint32_t lang, uint32_t
         s->tps = 0;
     }
     if (lyr > LYR_NW) {                                  /* scat: 1 .. 3 syllables (English: one) */
-        const char *const *L = lang == LG_EN ? SCAT_EN : SCAT_NO;
-        uint32_t nl = lang == LG_EN ? NELEM(SCAT_EN) : NELEM(SCAT_NO);
+        const char *const *L = lang == LG_NO ? SCAT_NO : SCAT_EN;
+        uint32_t nl = lang == LG_NO ? NELEM(SCAT_NO) : NELEM(SCAT_EN);
         uint32_t ns = lang == LG_EN ? 1u : 1u + sy_rnd(&s->rng) % 3u, k, m = 0;
         if (ns > s->prem) ns = s->prem;
         for (k = 0; k < ns; k++) {
@@ -733,8 +737,8 @@ static uint32_t sy_gen_word(const track_t *t, sing_t *s, uint32_t lang, uint32_t
         return src;
     }
     for (tries = 0; tries < 10u && j < 0; tries++) {
-        const char *const *T = lang == LG_EN ? TPL_EN : TPL_NO;
-        uint32_t nt = lang == LG_EN ? NELEM(TPL_EN) : NELEM(TPL_NO), cat, th;
+        const char *const *T = lang == LG_NO ? TPL_NO : TPL_EN;
+        uint32_t nt = lang == LG_NO ? NELEM(TPL_NO) : NELEM(TPL_EN), cat, th;
         const char *q;
         if (s->tpl == 0xFFu || !T[s->tpl % nt][s->tps]) {
             s->tpl = (uint8_t)(sy_rnd(&s->rng) % nt);
@@ -766,7 +770,7 @@ static uint32_t sy_gen_word(const track_t *t, sing_t *s, uint32_t lang, uint32_t
         for (tries = 0; tries < 6u && j < 0; tries++)
             j = ly_pick(lang, (sy_rnd(&s->rng) % 7u + 5u) % 8u, tries & 1u, s->prem, 1, &s->rng);
     if (j < 0) {                                         /* a vocable */
-        const char *v = VOCABLE[lang == LG_EN ? 0u : 1u];
+        const char *v = VOCABLE[lang == LG_NO ? 1u : 0u];
         src = LYB_N - 1u;
         s->w[0] = v[0];
         s->w[1] = v[1];

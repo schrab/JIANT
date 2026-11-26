@@ -429,6 +429,25 @@ int main(void)
                                                        !proj_pack(&ls, &l1) && proj_full;
             bad += check("0.8.5: long lyrics on a full section: packed whole, or SECTION FULL (never cut)", ok);
         }
+        {   /* (NO) LANG 2 has always meant EN. An older project (phys 3) keeps EN, maps retired ES/JA -> EN
+             * and the Norwegian branch's old LANG 10 -> NO (3); a project saved now (phys 4) round-trips 3. */
+            static project_t v1, v2;
+            static project_store_t vs;
+            int okv = 1;
+            v1 = f; v1.phys = 3; v1.t[0].engine = ENGI_VOICE;
+            v1.t[0].p[P_VLANG] = 2;
+            v1.sum = proj_sum(&v1);
+            okv &= proj_pack(&vs, &v1) && proj_import(&v2, &vs, sizeof vs) && v2.t[0].p[P_VLANG] == LG_EN;
+            v1.t[0].p[P_VLANG] = 1; v1.sum = proj_sum(&v1);
+            okv &= proj_pack(&vs, &v1) && proj_import(&v2, &vs, sizeof vs) && v2.t[0].p[P_VLANG] == LG_EN;
+            v1.t[0].p[P_VLANG] = 3; v1.sum = proj_sum(&v1);
+            okv &= proj_pack(&vs, &v1) && proj_import(&v2, &vs, sizeof vs) && v2.t[0].p[P_VLANG] == LG_EN;
+            v1.t[0].p[P_VLANG] = 10; v1.sum = proj_sum(&v1);
+            okv &= proj_pack(&vs, &v1) && proj_import(&v2, &vs, sizeof vs) && v2.t[0].p[P_VLANG] == LG_NO;
+            v1.phys = PROJ_PHYS; v1.t[0].p[P_VLANG] = LG_NO; v1.sum = proj_sum(&v1);
+            okv &= proj_pack(&vs, &v1) && proj_import(&v2, &vs, sizeof vs) && v2.t[0].p[P_VLANG] == LG_NO;
+            bad += check("LANG compatibility: old 2 stays EN, retired 1/3 -> EN, old 10 -> NO(3), new 3 round-trips", okv);
+        }
         {   /* (JIANT 0.6.3) the SLICER's bus: its globals round trip; a project of before it: from the tracks' SLICERs */
             static project_t s1, s2;
             s1 = f;

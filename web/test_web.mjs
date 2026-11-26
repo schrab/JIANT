@@ -79,8 +79,9 @@ const E = vm.runInNewContext(proto + `
 /* (NO) VOICE's language: the editor's LANG box offers EN and NO, and reads NO's index */
 {
   const LANG = vm.runInNewContext(html.slice(html.indexOf("const LYR_LANG ="), html.indexOf("const LYR_SRC =")) + "; LYR_LANG", {});
-  ok(Array.isArray(LANG) && LANG.length === 3 && LANG[2] === "NO", "editor: LANG OFF EN NO (2 = NO)");
-  ok(/Math\.min\(2, dev\.dump\.p\[LYR_ID\.lang\] \| 0\)/.test(html), "editor: LANG box reads value 2 (NO)");
+  ok(Array.isArray(LANG) && LANG.length === 4 && LANG[1] === "-" && LANG[2] === "EN" && LANG[3] === "NO",
+     "editor: LANG OFF - EN NO (2 = EN, 3 = NO)");
+  ok(/Math\.min\(3, dev\.dump\.p\[LYR_ID\.lang\] \| 0\)/.test(html), "editor: LANG box reads value 3 (NO)");
 }
 
 /* (JIANT 0.6.11, from Felucca 1.4.1's test) FM6's voice bank (cmds 74..77; the editor's fm6Bank) against the mock: INFO 56 01 32, a 32-voice .syx
@@ -470,8 +471,8 @@ function mockTables() {
     });
     if (fe.name === "VOICE") {
       const bz = fe.presets[fe.presets.length - 1];
-      ok(bz && bz.name === "BURZUM NO" && bz.xp === (2 | 1 << 3),
-         "editor/firmware: BURZUM NO last, xp = LANG NO | LYRIC W1 << 3");
+      ok(bz && bz.name === "BURZUM NO" && bz.xp === (3 | 1 << 3),
+         "editor/firmware: BURZUM NO last, xp = LANG 3/NO | LYRIC W1 << 3");
     }
   });
   cmp("PATTERNS", T.PATTERNS, fw.PATTERNS);

@@ -483,11 +483,11 @@ static void check_reading(void)
               "the generator's too; with it back as before", ok && strcmp(rb, b) && sy_en_find("love", 4, ph) > 0);
     }
     {   /* the banks: every word's syllables as gen_lyrics.py counted them (the generator fits phrases by them) */
-        static const char *const LN[3] = {"", "EN", "NO"};
+        static const char *const LN[4] = {"", "-", "EN", "NO"};
         uint32_t bad_w = 0, tot = 0;
         for (l = LG_EN; l <= LG_NO; l++) {
             const char *const *ref = l == LG_EN ? LY_EN_BANK_REF_W : LY_NO_BANK_REF_W;
-            const ly_bank_t *bk = &LY_BANK[l - 1u];
+            const ly_bank_t *bk = &LY_BANK[ly_bank_idx(l)];
             uint32_t nwds = l == LG_EN ? LY_EN_NW : LY_NO_NW;
             for (k = 0; k < nwds; k++) {
                 uint8_t ph[SW_MAX];
@@ -552,7 +552,7 @@ static uint32_t gen_text(uint32_t lang, uint32_t lyr, uint32_t theme, uint32_t n
 /* is w in lang's bank, category cat (any theme, FN too)? */
 static int bank_cat_has(uint32_t lang, uint32_t cat, const char *w)
 {
-    const ly_bank_t *bk = &LY_BANK[lang - 1u];
+    const ly_bank_t *bk = &LY_BANK[ly_bank_idx(lang)];
     uint32_t t, k;
     for (t = 0; t < TH_FN; t++) {
         uint32_t st = bk->grp[t][cat] & 511u, n = bk->grp[t][cat] >> 9;
@@ -568,7 +568,7 @@ static void check_generator(void)
 {
     char a[600], b[600], c[600], what[700];
     uint32_t ok, oks, l, s1, s2, s3;
-    static const char *const LN[3] = {"", "EN", "NO"};
+    static const char *const LN[4] = {"", "-", "EN", "NO"};
     for (l = LG_EN; l <= LG_NO; l++) {
         gen_text(l, 3, 4, 3, 7, a, sizeof a, &s1);
         gen_text(l, 3, 4, 3, 7, b, sizeof b, &s2);
@@ -596,7 +596,7 @@ static void check_generator(void)
                 char *p, *q;
                 gen_text(l, k, 4, 4, 11, a, sizeof a, &s1);
                 for (p = a; *p; p = q) {
-                    const ly_bank_t *bk = &LY_BANK[l - 1u];
+                    const ly_bank_t *bk = &LY_BANK[ly_bank_idx(l)];
                     uint32_t nwds = l == LG_EN ? LY_EN_NW : LY_NO_NW, found = 0, n;
                     while (*p == ' ' || *p == '/') p++;
                     for (q = p; *q && *q != ' '; q++)
@@ -1092,7 +1092,7 @@ static void check_presets(void)
             check(what, okc);
         }
     }
-    {   /* (NO) the preset appended after all the old ones, and LANG 2 as a name */
+    {   /* (NO) the preset appended after all the old ones, and LANG 3 as a name */
         char what[160], nm[8]; const char *u;
         int32_t pi = preset_of("BURZUM NO");
         snprintf(what, sizeof what, "BURZUM NO appended last (preset %d = npresets - 1)", pi);
@@ -1100,9 +1100,29 @@ static void check_presets(void)
         host_preset(&trk[0], eng_voice(), (uint32_t)pi);
         check("BURZUM NO picks LANG NO and LYRIC W1", trk[0].p[P_VLANG] == LG_NO && trk[0].p[P_VLYR] == 1);
         param_format(&VLANG_DESC, LG_NO, nm, &u);
-        snprintf(what, sizeof what, "LANG 2 reads %s, one turn from EN to NO", nm);
+        snprintf(what, sizeof what, "LANG 3 reads %s, one turn from EN to NO", nm);
         check(what, !strcmp(nm, "NO") && param_turn(&VLANG_DESC, LG_EN, 1) == LG_NO);
     }
+    {   /* (NO) LANG numbers are stable: 2 has always been EN, 3 is the new NO, 1 is reserved */
+        char a[256], b[256], nm[8]; const char *u;
+        int ok = 1;
+        param_format(&VLANG_DESC, LG_EN, nm, &u);
+        ok &= !strcmp(nm, "EN");
+        param_format(&VLANG_DESC, LG_NO, nm, &u);
+        ok &= !strcmp(nm, "NO");
+        param_format(&VLANG_DESC, LG_GONE_ES, nm, &u);
+        ok &= !strcmp(nm, "-");
+        g2p_str(LG_EN, "love", a, sizeof a);
+        g2p_str(2u, "love", b, sizeof b);
+        ok &= !strcmp(a, b);                                  /* LANG 2: exactly the EN reader */
+        g2p_str(LG_NO, "natt", a, sizeof a);
+        g2p_str(3u, "natt", b, sizeof b);
+        ok &= !strcmp(a, b) && !strcmp(a, "|n a t");          /* LANG 3: Norwegian rules */
+        g2p_str(1u, "natt", b, sizeof b);
+        ok &= strcmp(a, b) != 0;  /* reserved slot: EN letter rules, never the NO reading, no crash */
+        check("LANG 2 = EN (dictionary), 3 = NO (rules), reserved 1 never NO and never crashes", ok);
+    }
+
 }
 
 /* the lyric as notes play it: a note the next syllable, a TIE (no note) holds it, "-" holds the vowel, POS, empty TEXT */

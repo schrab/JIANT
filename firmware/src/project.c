@@ -76,8 +76,8 @@
 #define PROJ_MAGIC_V7 0x46554E37u              /* "FUN7": serialized (byte params, packed steps), chain, motion */
 #define PROJ_NG_V2 27u                         /* G_COUNT of formats 1 and 2 */
 #define PROJ_LT 4u                             /* the tracks of every format before FUNC */
-#define PROJ_PHYS 3u                           /* project_t.phys: PHYS without DUST and DRUM (2, see the top); (V10.7.36)
-                                                * 3: engine 11 is WEST (below: NOISE, proj_phys_gone) */
+#define PROJ_PHYS 4u                           /* project_t.phys: PHYS without DUST and DRUM (2, see the top); (V10.7.36)
+                                                * 3: engine 11 is WEST; 4 (NO): LANG 2 is EN, 3 is NO (below, proj_phys_gone) */
 #define PROJ_NAME_LEN 12u                      /* the name: FUN7 bytes PROJ_NAME_OFF.. (the reserved tail's end) */
 typedef struct {                               /* one track */
     int16_t p[P_COUNT];
@@ -330,10 +330,18 @@ static void proj_phys_gone(project_t *q)
             d->p[P_FTYPE] = 0;
             hit = 1;
         }
-        if (d->p[P_VLANG] > LG_NO) {                    /* (NO) old ES JA RU DE FR ZH PT GN (and LANG 10 = NO):
-                                                         * a saved project still loads: EN, but its old NO as NO */
-            d->p[P_VLANG] = (int16_t)(d->p[P_VLANG] == 10 ? LG_NO : LG_EN);
-            hit = 1;
+        /* (NO) LANG 2 has always meant EN: migrate an older project's LANG by its version byte.
+         * Old 1 (ES), 3 (JA), 4..9 -> EN; the Norwegian branch's old 10 -> NO; 0 and 2 stay.
+         * A project saved by this firmware (phys 4) keeps its 2/3; a stray reserved 1 -> EN. */
+        {
+            int16_t lv = d->p[P_VLANG], nv = lv;
+            if (q->phys < PROJ_PHYS) {
+                if (lv == 10) nv = LG_NO;              /* the Norwegian branch's old LANG NO */
+                else if (lv != LG_OFF && lv != LG_EN) nv = LG_EN;
+            } else if (lv == LG_GONE_ES) {
+                nv = LG_EN;                            /* the reserved slot: never a language */
+            }
+            if (nv != lv) { d->p[P_VLANG] = nv; hit = 1; }
         }
         if (!eng_gone(d->engine))
             continue;
